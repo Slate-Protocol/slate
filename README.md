@@ -2,7 +2,7 @@
 
 # Slate
 
-[![ci](https://github.com/Slate-Protocol/slate/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Slate-Protocol/slate/actions/workflows/ci.yml)
+[![ci](https://github.com/Slate-Protocol/slate/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Slate-Protocol/slate/actions/workflows/ci.yml) · [Docs](https://docs.slate.0xo.in) · [Dashboard](https://app.slate.0xo.in)
 
 **Nearly 200 stock tokens on Robinhood Chain. 35 Chainlink feeds. Slate prices the rest.**
 

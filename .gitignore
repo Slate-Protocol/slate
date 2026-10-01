@@ -35,3 +35,7 @@ test-results/
 dashboard/screenshots/
 .next/
 next-env.d.ts
+
+# vercel link
+.vercel
+.env*

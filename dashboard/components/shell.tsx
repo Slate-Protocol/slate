@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { ConnectWallet, Mark, QuoteToggle, ThemeToggle } from "./controls";
 
-const DOCS_URL = process.env.NEXT_PUBLIC_DOCS_URL ?? "https://github.com/Slate-Protocol/slate#readme";
+const DOCS_URL = process.env.NEXT_PUBLIC_DOCS_URL ?? "https://docs.slate.0xo.in";
 
 const sections = [
   { id: "feeds", label: "Feeds" },

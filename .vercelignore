@@ -1,0 +1,8 @@
+# Vercel builds one app (docs, dashboard) from this monorepo; nothing below is needed to build either.
+contracts/
+stylus/
+deployments/*.json
+!deployments/deployments.json
+brand/
+**/screenshots/
+**/.next/
