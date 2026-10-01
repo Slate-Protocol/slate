@@ -71,6 +71,12 @@ cd contracts && forge build && forge test          # unit and fuzz tests
 cd stylus && cargo test                            # Stylus verifier
 ```
 
+**A pool is not a price.** `SlateRouter` buys a basket's constituents with USDG (TESTUSD on testnet) and refuses any leg whose fill is more than 3% from that stock's Slate price. On Robinhood Chain testnet, a third-party Uniswap v3 clone sells TSLA at $0.0675 against $354.11, which is 99.98% off the market. The router refuses that route on a fork of the live pool. Through the official v4 PoolManager and, on mainnet, the real AAPL/USDG pool, it fills inside the band:
+
+```bash
+cd contracts && SLATE_FORK=1 forge test --match-contract RobinhoodTestnetRouterForkTest -vv
+```
+
 **We measured Stylus and it lost.** The Rust signed-report verifier matches the Solidity one on 307 live test reports, but costs 10–61% more gas at the signer counts Slate uses, so Slate ships the Solidity verifier. Numbers and method: [`stylus/BENCHMARK.md`](stylus/BENCHMARK.md).
 
 > Status: under active development for the Arbitrum Open House Singapore Online Buildathon. Unaudited.
