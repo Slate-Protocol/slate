@@ -1,0 +1,23 @@
+{
+  "name": "@slate/publisher",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Slate signer and relayer: signs Robinhood share prices with three keys and submits them to SignedSource.",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node src/main.ts",
+    "once": "node src/main.ts --once",
+    "test": "node --test src/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "viem": "2.57.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "typescript": "^5"
+  }
+}
