@@ -60,7 +60,7 @@ Strike builds on Chainlink feeds that already exist, and three.ws has no on-chai
 | Path | What |
 |---|---|
 | `contracts/` | Solidity (Foundry): `SlateFeed`, price sources, `USMarketCalendar`, USDG quoting, basket, NAV feed, router |
-| `stylus/` | Rust (Arbitrum Stylus): `SlateVerifier`, the signed-report verifier |
+| `stylus/` | Rust (Arbitrum Stylus): `SlateVerifier`, the signed-report verifier, benchmarked against Solidity |
 | `publisher/` | Signer and relayer service for off-chain share prices |
 | `dashboard/` | Dashboard app |
 | `docs/` | Documentation site |
@@ -70,6 +70,8 @@ Strike builds on Chainlink feeds that already exist, and three.ws has no on-chai
 cd contracts && forge build && forge test          # unit and fuzz tests
 cd stylus && cargo test                            # Stylus verifier
 ```
+
+**We measured Stylus and it lost.** The Rust signed-report verifier matches the Solidity one on 307 live test reports, but costs 10–61% more gas at the signer counts Slate uses, so Slate ships the Solidity verifier. Numbers and method: [`stylus/BENCHMARK.md`](stylus/BENCHMARK.md).
 
 > Status: under active development for the Arbitrum Open House Singapore Online Buildathon. Unaudited.
 
