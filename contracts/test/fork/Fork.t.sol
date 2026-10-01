@@ -23,6 +23,9 @@ abstract contract ForkTest is ReportBuilder {
     function _fork(string memory chain) internal {
         if (!vm.envOr("SLATE_FORK", false)) vm.skip(true);
         vm.createSelectFork(vm.envOr(string.concat("SLATE_FORK_URL_", chain), chain));
+        // Robinhood's public endpoints are load-balanced and a lagging node may not have `latest` yet, so stay a
+        // few blocks back. Arbitrum's public endpoint prunes state that quickly, so it stays at `latest`.
+        if (keccak256(bytes(chain)) != keccak256("arbitrum")) vm.rollFork(block.number - 20);
         calendar = new USMarketCalendar(address(this));
     }
 
