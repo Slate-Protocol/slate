@@ -22,15 +22,41 @@ contract SolidityReportVerifier is IReportVerifier {
     function verify(bytes32 domainSeparator, bytes32 feedId, bytes calldata report)
         external
         pure
-        returns (Summary memory summary)
+        returns (
+            address[] memory signers,
+            int256 medianPrice,
+            int256 minPrice,
+            int256 maxPrice,
+            uint64 medianObservedAt,
+            uint64 maxObservedAt
+        )
+    {
+        int192[] memory prices;
+        uint64[] memory times;
+        (signers, prices, times) = _decode(domainSeparator, feedId, report);
+        uint256 n = prices.length;
+
+        _sortPrices(prices);
+        _sortTimes(times);
+        minPrice = prices[0];
+        maxPrice = prices[n - 1];
+        medianPrice = n % 2 == 1 ? prices[n / 2] : _avg(prices[n / 2 - 1], prices[n / 2]);
+        medianObservedAt = times[n / 2];
+        maxObservedAt = times[n - 1];
+    }
+
+    function _decode(bytes32 domainSeparator, bytes32 feedId, bytes calldata report)
+        private
+        pure
+        returns (address[] memory signers, int192[] memory prices, uint64[] memory times)
     {
         if (report.length == 0) revert EmptyReport();
         if (report.length % ENTRY != 0) revert MalformedReport(report.length);
         uint256 n = report.length / ENTRY;
 
-        summary.signers = new address[](n);
-        int192[] memory prices = new int192[](n);
-        uint64[] memory times = new uint64[](n);
+        signers = new address[](n);
+        prices = new int192[](n);
+        times = new uint64[](n);
 
         address previous;
         for (uint256 i; i < n; ++i) {
@@ -39,18 +65,10 @@ contract SolidityReportVerifier is IReportVerifier {
             if (signer <= previous) revert SignersNotAscending(i);
             previous = signer;
 
-            summary.signers[i] = signer;
+            signers[i] = signer;
             prices[i] = price;
             times[i] = observedAt;
         }
-
-        _sortPrices(prices);
-        _sortTimes(times);
-        summary.minPrice = prices[0];
-        summary.maxPrice = prices[n - 1];
-        summary.medianPrice = n % 2 == 1 ? prices[n / 2] : _avg(prices[n / 2 - 1], prices[n / 2]);
-        summary.medianObservedAt = times[n / 2];
-        summary.maxObservedAt = times[n - 1];
     }
 
     function _recover(bytes32 domainSeparator, bytes32 feedId, bytes calldata entry, uint256 index)

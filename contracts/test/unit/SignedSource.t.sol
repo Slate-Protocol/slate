@@ -5,7 +5,6 @@ import {USMarketCalendar} from "../../src/calendar/USMarketCalendar.sol";
 import {SlateFeed} from "../../src/feeds/SlateFeed.sol";
 import {Session} from "../../src/interfaces/IMarketCalendar.sol";
 import {Observation, PriceKind} from "../../src/interfaces/IPriceSource.sol";
-import {IReportVerifier} from "../../src/interfaces/IReportVerifier.sol";
 import {FeedStatus, Quote} from "../../src/interfaces/ISlateFeed.sol";
 import {MultiplierModel} from "../../src/libraries/MultiplierLens.sol";
 import {SignedSource} from "../../src/sources/SignedSource.sol";
@@ -283,16 +282,17 @@ contract SignedSourceTest is ReportBuilder {
             p[i] = int192(int256(bound(uint256(keccak256(abi.encode(seed, i))), 1, 1e15)));
         }
         bytes32 otherDomain = keccak256("domain");
-        IReportVerifier.Summary memory sum = verifier.verify(otherDomain, CRWD, _report(otherDomain, CRWD, s, p, 42));
+        (address[] memory signers_, int256 median, int256 min, int256 max,,) =
+            verifier.verify(otherDomain, CRWD, _report(otherDomain, CRWD, s, p, 42));
 
         int192[] memory sorted = _sorted(p);
-        int192 expected = n % 2 == 1 ? sorted[n / 2] : int192((int256(sorted[n / 2 - 1]) + int256(sorted[n / 2])) >> 1);
-        assertEq(sum.medianPrice, expected);
-        assertEq(sum.minPrice, sorted[0]);
-        assertEq(sum.maxPrice, sorted[n - 1]);
-        assertEq(sum.signers.length, n);
+        int256 expected = n % 2 == 1 ? int256(sorted[n / 2]) : (int256(sorted[n / 2 - 1]) + int256(sorted[n / 2])) >> 1;
+        assertEq(median, expected);
+        assertEq(min, sorted[0]);
+        assertEq(max, sorted[n - 1]);
+        assertEq(signers_.length, n);
         for (uint256 i; i < n; ++i) {
-            assertEq(sum.signers[i], s[i].addr);
+            assertEq(signers_[i], s[i].addr);
         }
     }
 

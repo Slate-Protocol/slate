@@ -5,6 +5,7 @@ import {IPriceSource, Observation, PriceKind} from "../interfaces/IPriceSource.s
 import {IReportVerifier} from "../interfaces/IReportVerifier.sol";
 import {Ownable, Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
 
 /// @title SignedSource
@@ -73,27 +74,35 @@ contract SignedSource is IPriceSource, EIP712, Ownable2Step {
 
     /// @notice Accepts a signed report for `feedId`. Anyone may relay.
     function submit(bytes32 feedId, bytes calldata report) external {
-        IReportVerifier.Summary memory s = verifier.verify(_domainSeparatorV4(), feedId, report);
+        (
+            address[] memory reportSigners,
+            int256 medianPrice,
+            int256 minPrice,
+            int256 maxPrice,
+            uint64 medianObservedAt,
+            uint64 maxObservedAt
+        ) = verifier.verify(_domainSeparatorV4(), feedId, report);
 
-        uint256 n = s.signers.length;
+        uint256 n = reportSigners.length;
         for (uint256 i; i < n; ++i) {
-            if (!isSigner[s.signers[i]]) revert UnknownSigner(s.signers[i]);
+            if (!isSigner[reportSigners[i]]) revert UnknownSigner(reportSigners[i]);
         }
         if (n < quorum) revert QuorumNotMet(n, quorum);
-        if (s.minPrice <= 0) revert NonPositivePrice();
-        if (s.maxObservedAt > block.timestamp + maxFutureSkew) revert FutureObservation(s.maxObservedAt);
+        if (minPrice <= 0) revert NonPositivePrice();
+        if (maxObservedAt > block.timestamp + maxFutureSkew) revert FutureObservation(maxObservedAt);
 
-        uint256 spread = (SignedMath.abs(int256(s.maxPrice) - int256(s.minPrice)) * BPS) / SignedMath.abs(s.medianPrice);
+        uint256 spread = (SignedMath.abs(maxPrice - minPrice) * BPS) / SignedMath.abs(medianPrice);
         if (spread > maxSpreadBps) revert SpreadTooWide(spread);
 
         Latest memory prev = _latest[feedId];
-        if (s.medianObservedAt <= prev.observedAt) revert StaleReport(s.medianObservedAt, prev.observedAt);
-        if (prev.observedAt != 0 && _jumpBps(prev.price, s.medianPrice) > unanimousJumpBps) {
+        if (medianObservedAt <= prev.observedAt) revert StaleReport(medianObservedAt, prev.observedAt);
+        if (prev.observedAt != 0 && _jumpBps(prev.price, medianPrice) > unanimousJumpBps) {
             if (n < _signers.length) revert QuorumNotMet(n, _signers.length);
         }
 
-        _latest[feedId] = Latest({price: s.medianPrice, observedAt: s.medianObservedAt});
-        emit PriceUpdated(feedId, s.medianPrice, s.medianObservedAt, n);
+        int192 price = SafeCast.toInt192(medianPrice);
+        _latest[feedId] = Latest({price: price, observedAt: medianObservedAt});
+        emit PriceUpdated(feedId, price, medianObservedAt, n);
     }
 
     // ------------------------------------------------------------------------------------------------
@@ -147,7 +156,7 @@ contract SignedSource is IPriceSource, EIP712, Ownable2Step {
     }
 
     /// @dev `from` is a stored price, so it is positive.
-    function _jumpBps(int192 from, int192 to) private pure returns (uint256) {
-        return (SignedMath.abs(int256(to) - int256(from)) * BPS) / SignedMath.abs(from);
+    function _jumpBps(int192 from, int256 to) private pure returns (uint256) {
+        return (SignedMath.abs(to - int256(from)) * BPS) / SignedMath.abs(from);
     }
 }

@@ -14,18 +14,24 @@ pragma solidity ^0.8.24;
 ///      Each entry is an EIP-712 signature over
 ///        Observation(bytes32 feedId,int192 price,uint64 observedAt)
 ///      under the caller-supplied domain separator. Recovered signers must be strictly ascending.
+///      Prices are returned as int256 (each fits int192) and the results as plain return values, not a struct,
+///      so the Solidity and Stylus encodings are identical.
 interface IReportVerifier {
-    struct Summary {
-        address[] signers;
-        int192 medianPrice;
-        int192 minPrice;
-        int192 maxPrice;
-        uint64 medianObservedAt;
-        uint64 maxObservedAt;
-    }
-
+    /// @return signers Recovered signers, strictly ascending.
+    /// @return medianPrice Median price; for an even count, the floor of the mean of the middle two.
+    /// @return minPrice Lowest price.
+    /// @return maxPrice Highest price.
+    /// @return medianObservedAt Median observation time (upper middle for an even count).
+    /// @return maxObservedAt Latest observation time.
     function verify(bytes32 domainSeparator, bytes32 feedId, bytes calldata report)
         external
         view
-        returns (Summary memory);
+        returns (
+            address[] memory signers,
+            int256 medianPrice,
+            int256 minPrice,
+            int256 maxPrice,
+            uint64 medianObservedAt,
+            uint64 maxObservedAt
+        );
 }
