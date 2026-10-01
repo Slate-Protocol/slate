@@ -40,6 +40,7 @@ jobs:
     env:
       SLATE_FORK: "1"
       SLATE_FORK_URL_rh_mainnet: http://127.0.0.1:8548
+      SLATE_FORK_URL_rh_testnet: http://127.0.0.1:8549
     steps:
       - uses: actions/checkout@v4
         with:
@@ -48,6 +49,7 @@ jobs:
         with:
           version: v1.5.0
       - run: python3 script/rpc_relay.py https://rpc.mainnet.chain.robinhood.com 8548 &
+      - run: python3 script/rpc_relay.py https://rpc.testnet.chain.robinhood.com 8549 &
       - run: forge test --match-path "test/fork/*" -vvv
 
   stylus:
