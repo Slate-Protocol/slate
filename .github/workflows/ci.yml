@@ -32,8 +32,8 @@ jobs:
   fork:
     name: contracts (live fork tests)
     runs-on: ubuntu-latest
-    # Public RPCs can rate-limit or challenge CI runners; a red fork job is a signal, not a merge blocker.
-    continue-on-error: true
+    # Blocking. Public RPCs occasionally lag or challenge CI runners, so failed tests are retried twice before the
+    # job fails; a test that fails three times is a real failure.
     defaults:
       run:
         working-directory: contracts
@@ -50,7 +50,11 @@ jobs:
           version: v1.5.0
       - run: python3 script/rpc_relay.py https://rpc.mainnet.chain.robinhood.com 8548 &
       - run: python3 script/rpc_relay.py https://rpc.testnet.chain.robinhood.com 8549 &
-      - run: forge test --match-path "test/fork/*" -vvv
+      - name: forge test (live forks, up to 3 attempts)
+        run: |
+          forge test --match-path "test/fork/*" -vvv && exit 0
+          sleep 20; forge test --rerun -vvv && exit 0
+          sleep 40; forge test --rerun -vvv
 
   dashboard:
     name: dashboard (next)

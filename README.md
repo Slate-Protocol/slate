@@ -2,6 +2,8 @@
 
 # Slate
 
+[![ci](https://github.com/Slate-Protocol/slate/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Slate-Protocol/slate/actions/workflows/ci.yml)
+
 **195 stock tokens on Robinhood Chain, 35 Chainlink feeds. Slate prices the other 160.**
 
 ## CRWD, the case in one token
@@ -29,6 +31,16 @@ curl -s https://reference-data-directory.vercel.app/feeds-robinhood-mainnet.json
 cd contracts && python3 script/rpc_relay.py https://rpc.mainnet.chain.robinhood.com 8548 &
 SLATE_FORK=1 SLATE_FORK_URL_rh_mainnet=http://127.0.0.1:8548 \
   forge test --match-test test_crwd_signedPriceTimesRealMultiplier -vv
+```
+
+## AAPL with real USDG, through a real pool
+
+Slate's router bought 0.1 AAPL with **USDG** through the live AAPL/USDG Uniswap pool on Robinhood Chain mainnet (`0xAae0d815EE56e4092a5E5C2911E676Fea50B2d6D`), on a fork. It paid **32.79 USDG against a fair value of 32.71 USDG** (Chainlink AAPL × Chainlink USDG/USD), which is inside its 3% band, so the router accepted the route. The same check refuses a third-party TSLA pool on testnet that prices TSLA at $0.0675 against $354.11.
+
+```bash
+cd contracts && python3 script/rpc_relay.py https://rpc.mainnet.chain.robinhood.com 8548 &
+SLATE_FORK=1 SLATE_FORK_URL_rh_mainnet=http://127.0.0.1:8548 \
+  forge test --match-test test_aaplUsdgPool_createsWithinTheBand -vv
 ```
 
 ## What Slate is
