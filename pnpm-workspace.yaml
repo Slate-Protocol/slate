@@ -1,0 +1,4 @@
+packages:
+  - "publisher"
+  - "dashboard"
+  - "docs"
