@@ -43,6 +43,27 @@ SLATE_FORK=1 SLATE_FORK_URL_rh_mainnet=http://127.0.0.1:8548 \
   forge test --match-test test_aaplUsdgPool_createsWithinTheBand -vv
 ```
 
+## Live now
+
+On **Robinhood Chain testnet** (chain 46630), with prices signed 24/5 by three keys and relayed by the publisher on Railway ([status](https://publisher-production-891d.up.railway.app/)). Every contract is verified on the [explorer](https://explorer.testnet.chain.robinhood.com). The full list is in [`deployments/deployments.json`](deployments/deployments.json).
+
+| Contract | Address |
+|---|---|
+| SlateFeed TSLA / AMZN / AMD / PLTR / NFLX | `0x5A9c…aa84` / `0x368A…5667` / `0x72c0…bAc8` / `0xE880…e17A` / `0x0c46…E2c0` |
+| SLATE-5 basket | `0xed509B491F58D19eB489aC7C01c7a4bcBCf4e1bf` |
+| SLATE-5 NAV feed (AggregatorV3) | `0x8E2b6C63463DCf51b307811dB41bd60d7987608D` |
+| SlateRouter (TESTUSD, 3% band) | `0x3de24B7AEaD51D137c6C6B2c2820587108FA05Bd` |
+| SignedSource (3 signers, 2 needed, 48 h timelock owner) | `0x8B27311a3493a85E063f97e4bB59cf3a22aEA507` |
+| Corporate Action Lab: labTSLA / its SlateFeed | `0xfa84823B70F3147656Be84D0C96eA958efA97AeC` / `0x2B15c4AA73e8D387011e072d046a1B526f987322` |
+
+```bash
+# SLATE-5's NAV per share, 8 decimals, through the standard Chainlink interface
+cast call 0x8E2b6C63463DCf51b307811dB41bd60d7987608D "latestRoundData()(uint80,int256,uint256,uint256,uint80)" \
+  --rpc-url https://rpc.testnet.chain.robinhood.com
+```
+
+In the Lab, anyone can schedule a split on labTSLA. In our live run of a 4:1 split on 1 Oct, the naive feed read **$1,425.84** (4 × TSLA's $356.46) the moment the multiplier switched, while SlateFeed reported `STRADDLE` and refused. Three minutes later the first post-split print brought the naive feed back to $357.28; SlateFeed held `CORPORATE_ACTION` through its five-minute grace and then served **$357.31**, `OK`.
+
 ## What Slate is
 
 A multiplier-correct, fail-closed pricing layer for Robinhood stock tokens (ERC-8056), and an in-kind basket token built on it. Two things set it apart:
