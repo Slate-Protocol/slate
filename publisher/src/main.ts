@@ -17,6 +17,7 @@ import { aggregatorAbi, calendarAbi, erc20Abi, erc8056Abi, seederAbi, signedSour
 import {
   ARBITRUM_RPC,
   CADENCE,
+  PRESIGN,
   CROSS_CHECK_FEEDS,
   keys as loadKeys,
   loadManifest,
@@ -54,6 +55,8 @@ const state = {
   feeds: {} as Record<string, FeedState>,
   pools: {} as Record<string, { lastRecenterTx?: Hex; error?: string; at?: string }>,
   pokes: {} as Record<string, Hex>,
+  /** Reports signed ahead of the mainnet deployment, newest last. See PRESIGN in config.ts. */
+  presigned: [] as { symbol: string; feedId: Hex; price: string; observedAt: number; chainId: number; signedSource: Address; report: Hex }[],
 };
 
 function log(msg: string, extra?: unknown) {
@@ -286,6 +289,52 @@ async function keepPools(ctx: Ctx) {
 }
 
 // ------------------------------------------------------------------------------------------------
+// Signing ahead of a deployment
+// ------------------------------------------------------------------------------------------------
+
+async function presign(keys: Keys, quotes: Map<string, Promise<Quote>>, now: number) {
+  for (const symbol of PRESIGN.symbols) {
+    try {
+      if (!quotes.has(symbol)) quotes.set(symbol, fetchQuote(symbol));
+      const q = await quotes.get(symbol)!;
+      const problems = quoteProblems(q, now);
+      const mult = await multiplierProblem(q);
+      if (mult) problems.push(mult);
+      if (problems.length) {
+        log("refused to presign", { symbol, problems });
+        continue;
+      }
+      const last = state.presigned.filter((r) => r.symbol === symbol).at(-1);
+      if (last && last.observedAt >= q.observedAt) continue;
+      const id = feedId(symbol);
+      const report = await buildReport(keys.signers, PRESIGN.chainId, PRESIGN.signedSource, {
+        feedId: id,
+        price: q.mid,
+        observedAt: BigInt(q.observedAt),
+      });
+      state.presigned.push({
+        symbol,
+        feedId: id,
+        price: (Number(q.mid) / 1e8).toFixed(4),
+        observedAt: q.observedAt,
+        chainId: PRESIGN.chainId,
+        signedSource: PRESIGN.signedSource,
+        report,
+      });
+      // Keep the newest report and one per five minutes before it.
+      const kept: typeof state.presigned = [];
+      for (const r of [...state.presigned].reverse()) {
+        if (kept.length === 0 || kept[kept.length - 1].observedAt - r.observedAt >= 300) kept.push(r);
+        if (kept.length >= PRESIGN.keep) break;
+      }
+      state.presigned = kept.reverse();
+    } catch (e) {
+      log("presign failed", { symbol, error: reason(e) });
+    }
+  }
+}
+
+// ------------------------------------------------------------------------------------------------
 // Loop
 // ------------------------------------------------------------------------------------------------
 
@@ -320,6 +369,10 @@ async function cycle(keys: Keys) {
       }
     }),
   );
+  // Until mainnet's SignedSource exists, sign CRWD for it while the market is open (testnet's calendar says so).
+  const mainnetDeployed = nets.some((n) => n.chain.id === PRESIGN.chainId);
+  if (!mainnetDeployed && state.marketOpen[46630]) await presign(keys, quotes, now);
+
   state.cycles++;
   state.lastCycleAt = new Date().toISOString();
 }

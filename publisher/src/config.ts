@@ -29,6 +29,20 @@ export const SIGNED_SYMBOLS: Record<number, string[]> = {
   4663: ["CRWD"],
 };
 
+/**
+ * Signing ahead of a deployment. Robinhood Chain mainnet is deployed after Friday's close, and the publisher signs
+ * nothing while the market is closed, so CRWD's feed would hold no price until Monday. Instead, while the session is
+ * open, the publisher signs real CRWD observations for the SignedSource that the deployer's nonce 3 will create on
+ * mainnet. The last one signed before the close is relayed after deployment, at its true observation time, and the
+ * feed reads MARKET_CLOSED with Friday's closing price. Inactive once mainnet's SignedSource is in deployments.json.
+ */
+export const PRESIGN = {
+  chainId: 4663,
+  signedSource: "0xf0b57272f1D69083019E8953B82bC128002D7526" as Address,
+  symbols: ["CRWD"],
+  keep: 24,
+};
+
 /** Testnet stocks whose TESTUSD pools the keeper keeps on the Slate price. */
 export const POOL_SYMBOLS = ["TSLA", "AMZN", "AMD", "PLTR", "NFLX"];
 
