@@ -71,6 +71,21 @@ jobs:
       - run: pnpm --filter @slate/dashboard lint
       - run: pnpm --filter @slate/dashboard build
 
+  docs:
+    name: docs (next)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @slate/docs typecheck
+      - run: pnpm --filter @slate/docs lint
+      - run: pnpm --filter @slate/docs build
+
   publisher:
     name: publisher (node)
     runs-on: ubuntu-latest

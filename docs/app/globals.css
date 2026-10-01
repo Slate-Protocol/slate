@@ -1,0 +1,216 @@
+@import "tailwindcss";
+
+/* Slate docs: the same chalk-on-slate system as the landing page and dashboard. */
+:root,
+[data-theme="dark"] {
+  --bg: #0a0d12;
+  --surface: #10151c;
+  --surface-2: #161c25;
+  --border: #232c38;
+  --border-strong: #3a3524;
+  --text: #e7ebf1;
+  --muted: #9aa6b6;
+  --faint: #5f6c7e;
+  --accent: #e8c547;
+  --accent-text: #e8c547;
+  --on-accent: #0a0d12;
+  --active-bar: #e8c547;
+  --ok: #6aa6ff;
+  --ok-bg: rgb(106 166 255 / 0.13);
+  --warn: #f29a4a;
+  --warn-bg: rgb(242 154 74 / 0.12);
+  --stop: #f48a5c;
+  --stop-bg: rgb(244 138 92 / 0.14);
+  --neutral: #b7c1ce;
+  --neutral-bg: rgb(183 193 206 / 0.12);
+  --lab: #c9b2ff;
+  --lab-bg: rgb(201 178 255 / 0.14);
+  --lab-border: #4a3f6b;
+  --scrim: rgb(5 7 10 / 0.6);
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #f0f2f5;
+  --border: #dde2e8;
+  --border-strong: #d9c27a;
+  --text: #0f172a;
+  --muted: #4a5568;
+  --faint: #8a94a6;
+  --accent: #e8c547;
+  --accent-text: #7a5b00;
+  --on-accent: #0f172a;
+  --active-bar: #b8901a;
+  --ok: #1d4ed8;
+  --ok-bg: rgb(29 78 216 / 0.08);
+  --warn: #9a4a00;
+  --warn-bg: rgb(180 83 9 / 0.08);
+  --stop: #a3360b;
+  --stop-bg: rgb(163 54 11 / 0.08);
+  --neutral: #3f4a5a;
+  --neutral-bg: rgb(63 74 90 / 0.08);
+  --lab: #5b3fb0;
+  --lab-bg: rgb(91 63 176 / 0.08);
+  --lab-border: #b9a8e6;
+  --scrim: rgb(15 23 42 / 0.35);
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-accent: var(--accent);
+  --color-accent-text: var(--accent-text);
+  --color-on-accent: var(--on-accent);
+  --color-active-bar: var(--active-bar);
+  --color-ok: var(--ok);
+  --color-ok-bg: var(--ok-bg);
+  --color-warn: var(--warn);
+  --color-warn-bg: var(--warn-bg);
+  --color-stop: var(--stop);
+  --color-stop-bg: var(--stop-bg);
+  --color-neutral: var(--neutral);
+  --color-neutral-bg: var(--neutral-bg);
+  --color-lab: var(--lab);
+  --color-lab-bg: var(--lab-bg);
+  --color-lab-border: var(--lab-border);
+  --color-scrim: var(--scrim);
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+}
+
+@layer base {
+  html {
+    scroll-padding-top: 80px;
+  }
+  body {
+    @apply bg-bg text-text font-sans antialiased;
+  }
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+/* Article typography */
+.prose {
+  font-size: 16px;
+  line-height: 1.72;
+  color: var(--text);
+}
+.prose > * + * {
+  margin-top: 1.1em;
+}
+.prose h2 {
+  margin-top: 2.2em;
+  padding-top: 0.2em;
+  font-size: 1.45rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+.prose h3 {
+  margin-top: 1.8em;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+.prose p,
+.prose li {
+  color: var(--text);
+}
+.prose strong {
+  font-weight: 600;
+}
+.prose a {
+  color: var(--accent-text);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--accent-text) 40%, transparent);
+  text-underline-offset: 3px;
+}
+.prose a:hover {
+  text-decoration-color: var(--accent-text);
+}
+.prose ul,
+.prose ol {
+  padding-left: 1.4em;
+}
+.prose ul {
+  list-style: disc;
+}
+.prose ol {
+  list-style: decimal;
+}
+.prose li + li {
+  margin-top: 0.35em;
+}
+.prose li::marker {
+  color: var(--faint);
+}
+.prose blockquote {
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
+  padding: 0.8em 1.1em;
+  border-radius: 0 10px 10px 0;
+  color: var(--muted);
+}
+.prose :not(pre) > code {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 0.88em;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.1em 0.35em;
+  overflow-wrap: anywhere;
+}
+.prose pre {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 13.5px;
+  line-height: 1.6;
+  background: var(--surface) !important;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  overflow-x: auto;
+}
+.prose pre code {
+  font-family: inherit;
+}
+.prose .table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 14.5px;
+}
+.prose .table th,
+.prose .table td {
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+.prose .table th {
+  background: var(--surface-2);
+  font-weight: 600;
+}
+.prose hr {
+  border-color: var(--border);
+}
+
+/* Shiki dual themes: colours are CSS variables, chosen by the active theme. */
+.shiki span {
+  color: var(--shiki-dark);
+}
+[data-theme="light"] .shiki span {
+  color: var(--shiki-light);
+}
