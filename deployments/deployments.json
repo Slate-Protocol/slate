@@ -1,10 +1,68 @@
 {
   "networks": {
-    "4663": { "name": "Robinhood Chain", "explorer": "https://robinhoodchain.blockscout.com", "contracts": {} },
-    "46630": { "name": "Robinhood Chain testnet", "explorer": "https://explorer.testnet.chain.robinhood.com", "contracts": {} },
-    "42161": { "name": "Arbitrum One", "explorer": "https://arbiscan.io", "contracts": {} }
+    "4663": {
+      "name": "Robinhood Chain",
+      "explorer": "https://robinhoodchain.blockscout.com",
+      "contracts": {}
+    },
+    "46630": {
+      "name": "Robinhood Chain testnet",
+      "explorer": "https://explorer.testnet.chain.robinhood.com",
+      "contracts": {
+        "USMarketCalendar": "0xf0b57272f1D69083019E8953B82bC128002D7526",
+        "SolidityReportVerifier": "0xd921ad145FA22b0C8A4846d234857FBEFFDfDdc6",
+        "TimelockController": "0xFc42883Ae9ac9FeCE9A3b656f30D356775Fe2270",
+        "SignedSource": "0x8B27311a3493a85E063f97e4bB59cf3a22aEA507",
+        "SlateFeedFactory": "0xb9b82feE5926C74F5497C7571770d1532E8C9118",
+        "SlateLabStock": "0x4089D054029EAD138d26E6680d28fCCB93eb6C4E",
+        "NaiveMultiplierFeed": "0x2A9060CeEf039e0715E2D47E478432B00fB8AdCd",
+        "SlateTestDollar": "0x239f410D4D2152ba890F378f6B4Aa103B9ea7FEF"
+      }
+    },
+    "42161": {
+      "name": "Arbitrum One",
+      "explorer": "https://arbiscan.io",
+      "contracts": {}
+    }
   },
-  "feeds": [],
+  "feeds": [
+    {
+      "symbol": "AMD",
+      "chainId": 46630,
+      "token": "0x71178BAc73cBeb415514eB542a8995b82669778d",
+      "feed": "0x72c0cba3De702b739E3455120D0F1bC7D6BEbAc8"
+    },
+    {
+      "symbol": "AMZN",
+      "chainId": 46630,
+      "token": "0x5884aD2f920c162CFBbACc88C9C51AA75eC09E02",
+      "feed": "0x368A8E2D17271E55f8378BaB2424929b249C5667"
+    },
+    {
+      "symbol": "NFLX",
+      "chainId": 46630,
+      "token": "0x3b8262A63d25f0477c4DDE23F83cfe22Cb768C93",
+      "feed": "0x0c465299dD1C1E242e29a148b6aF9EbE8Ca7E2c0"
+    },
+    {
+      "symbol": "PLTR",
+      "chainId": 46630,
+      "token": "0x1FBE1a0e43594b3455993B5dE5Fd0A7A266298d0",
+      "feed": "0xE880669F55783Bb343277dD35106d5Eb736De17A"
+    },
+    {
+      "symbol": "TSLA",
+      "chainId": 46630,
+      "token": "0xC9f9c86933092BbbfFF3CCb4b105A4A94bf3Bd4E",
+      "feed": "0x5A9cD81b257a073802E9A039e7877A604964aa84"
+    },
+    {
+      "symbol": "labTSLA",
+      "chainId": 46630,
+      "token": "0x4089D054029EAD138d26E6680d28fCCB93eb6C4E",
+      "feed": "0xA6aC82c10b18ccB0fD4d2Ca200C9e8068243a9D4"
+    }
+  ],
   "experiments": {
     "46630": {
       "SlateVerifier (Stylus, benchmark)": "0x0819e35fd1ccccabb15a100dbb8315f04f1f093b",
