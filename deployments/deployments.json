@@ -16,7 +16,12 @@
         "SlateFeedFactory": "0xb9b82feE5926C74F5497C7571770d1532E8C9118",
         "SlateLabStock": "0x4089D054029EAD138d26E6680d28fCCB93eb6C4E",
         "NaiveMultiplierFeed": "0x2A9060CeEf039e0715E2D47E478432B00fB8AdCd",
-        "SlateTestDollar": "0x239f410D4D2152ba890F378f6B4Aa103B9ea7FEF"
+        "SlateTestDollar": "0x239f410D4D2152ba890F378f6B4Aa103B9ea7FEF",
+        "SlateBasket": "0xed509B491F58D19eB489aC7C01c7a4bcBCf4e1bf",
+        "SlateNavFeed": "0x8E2b6C63463DCf51b307811dB41bd60d7987608D",
+        "UniswapV4Venue": "0xCd1A61CA1cD4a4547a06e04A915535Ac04F8529B",
+        "SlateV4Seeder": "0xD2ECFBf050F2834722F3cC57E49b258A68851eF0",
+        "SlateRouter": "0x3de24B7AEaD51D137c6C6B2c2820587108FA05Bd"
       }
     },
     "42161": {
@@ -49,6 +54,12 @@
       "chainId": 46630,
       "token": "0x1FBE1a0e43594b3455993B5dE5Fd0A7A266298d0",
       "feed": "0xE880669F55783Bb343277dD35106d5Eb736De17A"
+    },
+    {
+      "symbol": "SLATE-5",
+      "chainId": 46630,
+      "token": "0xed509B491F58D19eB489aC7C01c7a4bcBCf4e1bf",
+      "feed": "0x8E2b6C63463DCf51b307811dB41bd60d7987608D"
     },
     {
       "symbol": "TSLA",
