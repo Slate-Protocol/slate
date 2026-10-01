@@ -32,13 +32,19 @@ export const SIGNED_SYMBOLS: Record<number, string[]> = {
 /** Testnet stocks whose TESTUSD pools the keeper keeps on the Slate price. */
 export const POOL_SYMBOLS = ["TSLA", "AMZN", "AMD", "PLTR", "NFLX"];
 
+/**
+ * When to submit, per chain: on a move of `deviationBps` since the last on-chain price, or once the on-chain price
+ * is `heartbeat` seconds old. Each must stay inside the feeds' `maxAge` (20 minutes on testnet, 40 on mainnet).
+ * Mainnet gas is real money, so CRWD is signed on a 0.5% move or every 30 minutes; testnet tracks closely.
+ */
+export const CADENCE: Record<number, { deviationBps: number; heartbeat: number }> = {
+  46630: { deviationBps: 10, heartbeat: 300 },
+  4663: { deviationBps: 50, heartbeat: 1800 },
+};
+
 export const settings = {
   /** Seconds between cycles. */
   interval: Number(process.env.PUBLISH_INTERVAL ?? 15),
-  /** Submit when the price has moved this much since the last on-chain price… */
-  deviationBps: Number(process.env.PUBLISH_DEVIATION_BPS ?? 10),
-  /** …or when the on-chain price is this old (the feeds accept 20 minutes). */
-  heartbeat: Number(process.env.PUBLISH_HEARTBEAT ?? 300),
   /** Refuse a Robinhood quote older than this, in seconds. */
   maxQuoteAge: 60,
   /** Refuse a quote whose bid/ask spread is wider than this. */

@@ -87,7 +87,7 @@ contract Deploy is Script {
         (USMarketCalendar calendar, SignedSource source, SlateFeedFactory factory) = _core(2);
 
         for (uint256 i; i < 5; ++i) {
-            SlateFeed feed = _signedFeed(factory, source, calendar, TESTNET_TOKENS[i], TESTNET_SYMBOLS[i]);
+            SlateFeed feed = _signedFeed(factory, source, calendar, TESTNET_TOKENS[i], TESTNET_SYMBOLS[i], 20 minutes);
             _feed(TESTNET_SYMBOLS[i], TESTNET_TOKENS[i], address(feed));
         }
 
@@ -203,8 +203,9 @@ contract Deploy is Script {
         _begin();
         (USMarketCalendar calendar, SignedSource source, SlateFeedFactory factory) = _core(2);
 
-        // CRWD: no Chainlink feed. Signed share price × the token's own multiplier (4.0).
-        SlateFeed crwd = _signedFeed(factory, source, calendar, CRWD, "CRWD");
+        // CRWD: no Chainlink feed. Signed share price × the token's own multiplier (4.0). Mainnet gas is real, so the
+        // publisher signs on a 0.5% move or every 30 minutes; the feed accepts prices up to 40 minutes old.
+        SlateFeed crwd = _signedFeed(factory, source, calendar, CRWD, "CRWD", 40 minutes);
         _feed("CRWD", CRWD, address(crwd));
         SlateQuotedFeed crwdUsdg = new SlateQuotedFeed(crwd, USDG_USD, 25 hours, "CRWD / USDG (Slate, 8 dp)");
         _contract("SlateQuotedFeed CRWD/USDG", address(crwdUsdg));
@@ -314,7 +315,8 @@ contract Deploy is Script {
         SignedSource source,
         USMarketCalendar calendar,
         address token,
-        string memory symbol
+        string memory symbol,
+        uint32 maxAge
     ) internal returns (SlateFeed) {
         return factory.deploy(
             _config(
@@ -323,7 +325,7 @@ contract Deploy is Script {
                 string.concat(symbol, "/USD"),
                 calendar,
                 Session.EXTENDED,
-                20 minutes,
+                maxAge,
                 30 minutes,
                 string.concat(symbol, " / USD (Slate, ERC-8056 adjusted, 8 dp)")
             ),
