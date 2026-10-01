@@ -29,6 +29,27 @@ jobs:
       - run: forge build --sizes
       - run: forge test -vvv
 
+  fork:
+    name: contracts (live fork tests)
+    runs-on: ubuntu-latest
+    # Public RPCs can rate-limit or challenge CI runners; a red fork job is a signal, not a merge blocker.
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: contracts
+    env:
+      SLATE_FORK: "1"
+      SLATE_FORK_URL_rh_mainnet: http://127.0.0.1:8548
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.5.0
+      - run: python3 script/rpc_relay.py https://rpc.mainnet.chain.robinhood.com 8548 &
+      - run: forge test --match-path "test/fork/*" -vvv
+
   stylus:
     name: stylus (cargo)
     runs-on: ubuntu-latest

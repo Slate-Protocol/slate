@@ -36,3 +36,10 @@ sort_imports = true
 rh_testnet = "https://rpc.testnet.chain.robinhood.com"
 rh_mainnet = "https://rpc.mainnet.chain.robinhood.com"
 arbitrum = "https://arb1.arbitrum.io/rpc"
+
+[lint]
+# External interfaces (ERC-8056's uiMultiplier, Chainlink's API) and public immutable getters are
+# named for their callers, not for Solidity style.
+exclude_lints = ["mixed-case-function", "screaming-snake-case-immutable", "asm-keccak256"]
+# Tests cast literals freely (bytes32("CRWD/USD"), bounded fuzz inputs); lint production code only.
+ignore = ["test/**/*.sol"]

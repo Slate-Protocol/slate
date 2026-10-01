@@ -32,7 +32,7 @@ On top of that, the multiplier changes silently: `UIMultiplierUpdated` fires whe
 - [nirholas/three.ws](https://github.com/nirholas/three.ws) already ships an in-kind basket vault on Robinhood Chain and deliberately keeps prices off-chain ("prices are a display concern, computed off-chain"). Slate's in-kind create/redeem follows the same price-independent principle. What Slate adds is the on-chain price: per-token feeds for the uncovered tokens, and a basket NAV feed that other protocols can consume.
 - [Prashant-thakur77/Strike](https://github.com/Prashant-thakur77/Strike) is an options-vault product whose `SafeStockFeed` library guards Chainlink stock feeds: staleness, both pause flags, corporate actions and an on-chain market calendar. On testnet it mirrors mainnet Chainlink rounds into `MirrorFeed`s.
 
-Both build on prices that already exist. Neither prices a stock token that has no Chainlink feed, and neither publishes a basket NAV as a feed. Those are the two things Slate adds.
+three.ws keeps prices off-chain and Strike builds on Chainlink feeds that already exist. Neither prices a stock token that has no Chainlink feed, and neither publishes a basket NAV as a feed. Those are the two things Slate adds.
 
 ## Development
 
