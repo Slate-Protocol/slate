@@ -52,6 +52,21 @@ jobs:
       - run: python3 script/rpc_relay.py https://rpc.testnet.chain.robinhood.com 8549 &
       - run: forge test --match-path "test/fork/*" -vvv
 
+  dashboard:
+    name: dashboard (next)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @slate/dashboard typecheck
+      - run: pnpm --filter @slate/dashboard lint
+      - run: pnpm --filter @slate/dashboard build
+
   stylus:
     name: stylus (cargo)
     runs-on: ubuntu-latest

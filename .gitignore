@@ -30,3 +30,8 @@ dist/
 # playwright
 playwright-report/
 test-results/
+
+# dashboard screenshot gate output
+dashboard/screenshots/
+.next/
+next-env.d.ts

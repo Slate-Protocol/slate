@@ -2,3 +2,5 @@ packages:
   - "publisher"
   - "dashboard"
   - "docs"
+minimumReleaseAgeExclude:
+  - viem@2.57.2
