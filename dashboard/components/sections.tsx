@@ -123,8 +123,8 @@ export function Overview({ data }: { data: DashboardData }) {
       </section>
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-3">
-        <Stat label="Stock tokens on Robinhood Chain" value="195" />
-        <Stat label="With a Chainlink feed" value="35" />
+        <Stat label="Stock tokens on Robinhood Chain" value={data.coverage ? String(data.coverage.tokens) : "~200"} />
+        <Stat label="With a Chainlink feed" value={data.coverage ? String(data.coverage.withFeed) : "35"} />
         <Stat label="Slate feeds live" value={String(data.feedsLive)} />
       </div>
     </>

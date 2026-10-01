@@ -87,6 +87,8 @@ export type DashboardData = {
   };
   mainnet: { contracts: Contracts; aaplUsdg: Address | null };
   usdgUsd: number | null;
+  /** Live: stock tokens in Robinhood's registry and how many have a Chainlink feed. Null if unreachable. */
+  coverage: { tokens: number; withFeed: number } | null;
   feedsLive: number;
   readAt: string;
 };
@@ -105,6 +107,22 @@ async function robinhoodQuote(symbol: string) {
   const body = (await settle(res.json())) as { quotes?: { tokenBid: string; tokenAsk: string }[] } | null;
   const q = body?.quotes?.[0];
   return q ? { tokenBid: Number(q.tokenBid), tokenAsk: Number(q.tokenAsk) } : null;
+}
+
+async function coverage(): Promise<DashboardData["coverage"]> {
+  const [assets, feeds] = await Promise.all([
+    settle(fetch("https://api.robinhood.com/rhj/assets", { next: { revalidate: 3600 } }).then((r) => r.json())),
+    settle(fetch("https://reference-data-directory.vercel.app/feeds-robinhood-mainnet.json", { next: { revalidate: 3600 } }).then((r) => r.json())),
+  ]);
+  if (!assets || !feeds) return null;
+  const list = (Array.isArray(assets) ? assets : (Object.values(assets).find(Array.isArray) ?? [])) as { tokenSymbol: string }[];
+  const symbols = new Set(list.map((a) => a.tokenSymbol.toUpperCase()));
+  const covered = new Set<string>();
+  for (const f of feeds as { name: string }[]) {
+    const m = /^Robinhood\s+([A-Za-z.]+)\s*[-/]\s*USD/.exec(f.name);
+    if (m && symbols.has(m[1].toUpperCase())) covered.add(m[1].toUpperCase());
+  }
+  return symbols.size && covered.size ? { tokens: symbols.size, withFeed: covered.size } : null;
 }
 
 export async function getDashboardData(): Promise<DashboardData> {
@@ -148,9 +166,10 @@ export async function getDashboardData(): Promise<DashboardData> {
     )
   ).filter((r): r is FeedRow => r !== null);
 
-  const [usdg, crwdQuote] = await Promise.all([
+  const [usdg, crwdQuote, counts] = await Promise.all([
     settle(client(4663).readContract({ address: USDG_USD, abi: aggregatorAbi, functionName: "latestRoundData" })),
     robinhoodQuote("CRWD"),
+    coverage(),
   ]);
   const crwdRow = rows[0];
   const live = crwdRow.price !== null;
@@ -181,6 +200,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       aaplUsdg: dep.networks["4663"]?.contracts?.["SlateQuotedFeed AAPL/USDG"] ?? null,
     },
     usdgUsd: usdg && usdg[1] > 0n ? Number(formatUnits(usdg[1], 8)) : null,
+    coverage: counts,
     feedsLive: rows.filter((r) => r.feed).length,
     readAt: new Date().toISOString(),
   };

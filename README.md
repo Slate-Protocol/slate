@@ -4,7 +4,9 @@
 
 [![ci](https://github.com/Slate-Protocol/slate/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Slate-Protocol/slate/actions/workflows/ci.yml)
 
-**195 stock tokens on Robinhood Chain, 35 Chainlink feeds. Slate prices the other 160.**
+**Nearly 200 stock tokens on Robinhood Chain. 35 Chainlink feeds. Slate prices the rest.**
+
+On 1 Oct 2026 Robinhood's registry listed 194 stock tokens and Chainlink had feeds for 35 of them. Recount any time: `curl -s https://api.robinhood.com/rhj/assets | jq length`, against `https://reference-data-directory.vercel.app/feeds-robinhood-mainnet.json`.
 
 ## CRWD, the case in one token
 
@@ -68,7 +70,7 @@ In the Lab, anyone can schedule a split on labTSLA. In our live run of a 4:1 spl
 
 A multiplier-correct, fail-closed pricing layer for Robinhood stock tokens (ERC-8056), and an in-kind basket token built on it. Two things set it apart:
 
-1. **It prices the 160 stock tokens that have no Chainlink feed.**
+1. **It prices the stock tokens that have no Chainlink feed** (159 of 194 on 1 Oct 2026).
 2. **The basket's NAV is itself a drop-in `AggregatorV3Interface` feed**, so a Slate share can be priced by any protocol that reads Chainlink.
 
 Prices can be quoted in USD or in **Paxos USDG**, through the USDG/USD Chainlink feed on Robinhood Chain.
