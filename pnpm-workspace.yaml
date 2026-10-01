@@ -4,3 +4,7 @@ packages:
   - "docs"
 minimumReleaseAgeExclude:
   - viem@2.57.2
+# Native install scripts: sharp (Next image optimisation) may build; unrs-resolver ships prebuilt binaries.
+allowBuilds:
+  sharp: true
+  unrs-resolver: false
