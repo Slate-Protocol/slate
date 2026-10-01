@@ -2,6 +2,10 @@
 pragma solidity ^0.8.24;
 
 import {IERC8056, IOraclePausable} from "../interfaces/IERC8056.sol";
+
+interface ILabSplitSource {
+    function freeze() external;
+}
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /// @title SlateLabStock
@@ -26,6 +30,9 @@ contract SlateLabStock is ERC20, IERC8056, IOraclePausable {
     uint256 private _newMultiplier;
     uint256 private _effectiveAt;
     uint256 public lastScheduledAt;
+    /// @notice Set once at deployment: the source that splits this token's underlying share price.
+    address public splitSource;
+    address private immutable _admin;
     mapping(address account => uint256) public lastFaucetAt;
 
     event Faucet(address indexed to, uint256 amount);
@@ -33,8 +40,17 @@ contract SlateLabStock is ERC20, IERC8056, IOraclePausable {
     error MultiplierOutOfRange(uint256 multiplier);
     error EffectiveTimeOutOfRange(uint256 effectiveAt);
     error Cooldown(uint256 nextAt);
+    error AlreadySet();
 
-    constructor(string memory name_, string memory symbol_) ERC20(name_, symbol_) {}
+    constructor(string memory name_, string memory symbol_) ERC20(name_, symbol_) {
+        _admin = msg.sender;
+    }
+
+    /// @notice Wires the split source once, at deployment.
+    function setSplitSource(address source) external {
+        if (msg.sender != _admin || splitSource != address(0)) revert AlreadySet();
+        splitSource = source;
+    }
 
     // ------------------------------------------------------------------------------------------------
     // ERC-8056
@@ -85,6 +101,7 @@ contract SlateLabStock is ERC20, IERC8056, IOraclePausable {
         _multiplier = oldMultiplier;
         _newMultiplier = newMultiplier;
         _effectiveAt = effectiveAt_;
+        if (splitSource != address(0)) ILabSplitSource(splitSource).freeze();
         emit UIMultiplierUpdated(oldMultiplier, newMultiplier, effectiveAt_);
     }
 

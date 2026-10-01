@@ -92,7 +92,7 @@ contract Deploy is Script {
         }
 
         // Corporate Action Lab: a Slate test token over the same signed TSLA share price, 24/5.
-        _lab(factory, source, "TSLA/USD", calendar, Session.EXTENDED, 20 minutes, "labTSLA-v2");
+        _lab(factory, source, "TSLA/USD", calendar, Session.EXTENDED, 20 minutes, "labTSLA-v3");
         _contract("SlateTestDollar", address(new SlateTestDollar(deployer)));
         _end();
     }
@@ -110,7 +110,7 @@ contract Deploy is Script {
             USMarketCalendar(vm.parseJsonAddress(json, ".contracts['USMarketCalendar']")),
             Session.EXTENDED,
             20 minutes,
-            "labTSLA-v2"
+            "labTSLA-v3"
         );
         _end();
     }
@@ -288,6 +288,7 @@ contract Deploy is Script {
     ) internal {
         SlateLabStock lab = new SlateLabStock("Slate Lab TSLA", "labTSLA");
         LabSplitSource split = new LabSplitSource(inner, bytes32(bytes(innerFeedId)), lab);
+        lab.setSplitSource(address(split));
         SlateFeed feed = factory.deploy(
             _config(
                 address(lab),
@@ -296,7 +297,7 @@ contract Deploy is Script {
                 calendar,
                 session,
                 maxAge,
-                15 minutes,
+                5 minutes,
                 "labTSLA / USD (Slate Lab, ERC-8056 adjusted, 8 dp)"
             ),
             salt

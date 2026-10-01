@@ -128,6 +128,7 @@ contract NaiveVersusSlateTest is Test {
         tsla = new MockPriceSource(PriceKind.RAW_UNDERLYING);
         tsla.set(1060e8, 8, block.timestamp);
         split = new LabSplitSource(tsla, bytes32("TSLA/USD"), stock);
+        stock.setSplitSource(address(split));
         naive = new NaiveMultiplierFeed(split, stock);
         slate = new SlateFeed(
             SlateFeed.Config({
@@ -192,7 +193,26 @@ contract NaiveVersusSlateTest is Test {
         assertEq(uint8(slate.status()), uint8(FeedStatus.CORPORATE_ACTION));
     }
 
-    function test_multiplierAt_tracksTheSchedule() public {
+    /// A real split's first print comes at the next open. Prints that land before `PRINT_DELAY` are not served.
+    function test_printsBeforeTheDelay_areHeldBack() public {
+        vm.warp(splitAt + 1);
+        tsla.set(1060e8, 8, block.timestamp); // the publisher keeps signing
+        (, int256 n,,,) = naive.latestRoundData();
+        assertEq(n, 4240e8); // still the frozen pre-split print × 4
+        vm.warp(splitAt + split.PRINT_DELAY());
+        tsla.set(1060e8, 8, block.timestamp);
+        (, n,,,) = naive.latestRoundData();
+        assertEq(n, 1060e8);
+    }
+
+    function test_onlyTheLabFreezes_andTheSourceIsSetOnce() public {
+        vm.expectRevert(LabSplitSource.OnlyLab.selector);
+        split.freeze();
+        vm.expectRevert(SlateLabStock.AlreadySet.selector);
+        stock.setSplitSource(address(1));
+    }
+
+    function test_multiplierAt_tracksTheSchedule() public view {
         assertEq(stock.multiplierAt(splitAt - 1), 1e18);
         assertEq(stock.multiplierAt(splitAt), 4e18);
     }
