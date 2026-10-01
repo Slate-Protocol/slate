@@ -198,10 +198,24 @@ contract Deploy is Script {
     // Robinhood Chain mainnet: read-only feeds
     // ------------------------------------------------------------------------------------------------
 
+    /// @dev The publisher signed Friday's CRWD prices for the SignedSource this deployer's nonce 3 creates. A
+    ///      deployer that has sent anything before this script would put SignedSource elsewhere and make those
+    ///      reports worthless, so the script refuses to run.
+    address internal constant PRESIGNED_SIGNED_SOURCE = 0xf0b57272f1D69083019E8953B82bC128002D7526;
+
     function mainnet() external {
         require(block.chainid == 4663, "not RH mainnet");
+        address d = vm.addr(vm.envUint("DEPLOYER_PRIVATE_KEY"));
+        require(
+            vm.getNonce(d) == 0, "ABORT: deployer nonce is not 0; the presigned SignedSource address no longer holds"
+        );
+        require(
+            vm.computeCreateAddress(d, 3) == PRESIGNED_SIGNED_SOURCE,
+            "ABORT: SignedSource would not land on the presigned address"
+        );
         _begin();
         (USMarketCalendar calendar, SignedSource source, SlateFeedFactory factory) = _core(2);
+        require(address(source) == PRESIGNED_SIGNED_SOURCE, "ABORT: SignedSource is not on the presigned address");
 
         // CRWD: no Chainlink feed. Signed share price × the token's own multiplier (4.0). Mainnet gas is real, so the
         // publisher signs on a 0.5% move or every 30 minutes; the feed accepts prices up to 40 minutes old.
