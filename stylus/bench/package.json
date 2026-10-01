@@ -1,0 +1,12 @@
+{
+  "name": "@slate/verifier-bench",
+  "private": true,
+  "type": "module",
+  "description": "Differential test and gas benchmark: Stylus SlateVerifier vs SolidityReportVerifier, live on-chain",
+  "scripts": {
+    "bench": "node bench.mjs"
+  },
+  "dependencies": {
+    "viem": "2.57.2"
+  }
+}

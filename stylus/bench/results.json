@@ -1,0 +1,37 @@
+{
+  "rpc": "https://rpc.testnet.chain.robinhood.com",
+  "stylus": "0x0819e35fd1ccccabb15a100dbb8315f04f1f093b",
+  "solidity": "0x1015EddD8776275446E23469c16F85E1ec6b5131",
+  "seed": "20261001",
+  "validCases": 300,
+  "invalidCases": 7,
+  "mismatches": 0,
+  "failures": [],
+  "gas": [
+    {
+      "signers": 1,
+      "stylus": 82241,
+      "solidity": 50970,
+      "saving": "-61.4%"
+    },
+    {
+      "signers": 3,
+      "stylus": 98989,
+      "solidity": 74576,
+      "saving": "-32.7%"
+    },
+    {
+      "signers": 5,
+      "stylus": 114709,
+      "solidity": 96823,
+      "saving": "-18.5%"
+    },
+    {
+      "signers": 7,
+      "stylus": 129219,
+      "solidity": 117870,
+      "saving": "-9.6%"
+    }
+  ],
+  "at": "2026-10-01T14:15:39.369Z"
+}
