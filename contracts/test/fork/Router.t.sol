@@ -27,10 +27,7 @@ import {console} from "forge-std/console.sol";
 abstract contract RouterForkTest is ForkTest {
     address internal alice = makeAddr("alice");
 
-    function _singleBasket(address token, ISlateFeed feed)
-        internal
-        returns (SlateBasket basket, SlateNavFeed nav)
-    {
+    function _singleBasket(address token, ISlateFeed feed) internal returns (SlateBasket basket, SlateNavFeed nav) {
         IERC20[] memory c = new IERC20[](1);
         c[0] = IERC20(token);
         uint256[] memory units = new uint256[](1);
