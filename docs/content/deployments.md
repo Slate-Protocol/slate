@@ -5,6 +5,15 @@ description: Every Slate contract, by network. The canonical list is deployments
 
 The canonical, machine-readable list is [`deployments/deployments.json`](https://github.com/Slate-Protocol/slate/blob/main/deployments/deployments.json). The dashboard, the landing page and the publisher all read it.
 
+## Web
+
+| Site | Address |
+|---|---|
+| Landing | [slate.0xo.in](https://slate.0xo.in) |
+| Dashboard | [app.slate.0xo.in](https://app.slate.0xo.in) |
+| Docs | [docs.slate.0xo.in](https://docs.slate.0xo.in) |
+| Publisher status | [publisher-production-891d.up.railway.app](https://publisher-production-891d.up.railway.app/) |
+
 ## Robinhood Chain testnet (46630): live
 
 Every contract is verified on the [explorer](https://explorer.testnet.chain.robinhood.com).
