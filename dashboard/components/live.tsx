@@ -15,7 +15,7 @@ import {
   type Hash,
 } from "viem";
 import { useConfig, useConnection, useReadContracts } from "wagmi";
-import { switchChain, waitForTransactionReceipt, writeContract } from "wagmi/actions";
+import { simulateContract, switchChain, waitForTransactionReceipt, writeContract } from "wagmi/actions";
 import {
   basketAbi,
   erc20Abi,
@@ -91,7 +91,7 @@ type WriteRequest = { address: Address; abi: Abi; functionName: string; args?: r
 /** Runs one transaction on RH testnet, switching the wallet's chain first if needed. */
 function useTx(onDone?: () => void) {
   const config = useConfig();
-  const { chainId } = useConnection();
+  const { chainId, address } = useConnection();
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string; hash?: Hash } | null>(null);
 
@@ -100,6 +100,8 @@ function useTx(onDone?: () => void) {
     setMessage(null);
     try {
       if (chainId !== TESTNET) await switchChain(config, { chainId: TESTNET });
+      // Simulate first: a refused route or an unusable feed is explained here, by name, before the wallet opens.
+      await simulateContract(config, { ...request, account: address, chainId: TESTNET } as Parameters<typeof simulateContract>[1]);
       const hash = await writeContract(config, { ...request, chainId: TESTNET } as Parameters<typeof writeContract>[1]);
       const receipt = await waitForTransactionReceipt(config, { hash, chainId: TESTNET });
       if (receipt.status !== "success") throw new Error("Transaction reverted.");
