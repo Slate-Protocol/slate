@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+import {USMarketCalendar} from "../../src/calendar/USMarketCalendar.sol";
 import {SlateFeed} from "../../src/feeds/SlateFeed.sol";
 import {SlateQuotedFeed} from "../../src/feeds/SlateQuotedFeed.sol";
 import {AggregatorV3Interface} from "../../src/interfaces/AggregatorV3Interface.sol";
 import {IERC8056} from "../../src/interfaces/IERC8056.sol";
+import {Session} from "../../src/interfaces/IMarketCalendar.sol";
 import {PriceKind} from "../../src/interfaces/IPriceSource.sol";
 import {FeedStatus, Quote} from "../../src/interfaces/ISlateFeed.sol";
 import {MultiplierModel} from "../../src/libraries/MultiplierLens.sol";
@@ -21,9 +23,12 @@ abstract contract ForkTest is ReportBuilder {
     function _fork(string memory chain) internal {
         if (!vm.envOr("SLATE_FORK", false)) vm.skip(true);
         vm.createSelectFork(vm.envOr(string.concat("SLATE_FORK_URL_", chain), chain));
+        calendar = new USMarketCalendar(address(this));
     }
 
-    function _feed(address token, MultiplierModel model, ChainlinkSource src, uint32 maxAge)
+    USMarketCalendar internal calendar;
+
+    function _feed(address token, MultiplierModel model, ChainlinkSource src, uint32 maxAge, Session session)
         internal
         returns (SlateFeed)
     {
@@ -37,6 +42,8 @@ abstract contract ForkTest is ReportBuilder {
                 corporateActionGrace: 30 minutes,
                 largeChangeBps: 500,
                 allowMarketClosed: true,
+                calendar: calendar,
+                session: session,
                 description: "fork"
             })
         );
@@ -75,6 +82,8 @@ contract RobinhoodMainnetForkTest is ForkTest {
                 corporateActionGrace: 30 minutes,
                 largeChangeBps: 500,
                 allowMarketClosed: true,
+                calendar: calendar,
+                session: Session.EXTENDED,
                 description: "CRWD / USD"
             })
         );
@@ -89,8 +98,13 @@ contract RobinhoodMainnetForkTest is ForkTest {
 
     /// Robinhood's Chainlink feed already includes AAPL's multiplier; Slate must pass it through unchanged.
     function test_aapl_totalReturnFeedPassesThroughExactly() public {
-        SlateFeed feed =
-            _feed(AAPL, MultiplierModel.ERC8056, new ChainlinkSource(AAPL_USD, PriceKind.TOTAL_RETURN), 4 days);
+        SlateFeed feed = _feed(
+            AAPL,
+            MultiplierModel.ERC8056,
+            new ChainlinkSource(AAPL_USD, PriceKind.TOTAL_RETURN),
+            4 days,
+            Session.EXTENDED
+        );
         (, int256 chainlink,,,) = AAPL_USD.latestRoundData();
         (Quote memory q, int256 sharePrice, uint256 multiplier) = feed.latestDetail();
         assertEq(q.answer, chainlink);
@@ -99,8 +113,13 @@ contract RobinhoodMainnetForkTest is ForkTest {
     }
 
     function test_aapl_inUsdg() public {
-        SlateFeed usd =
-            _feed(AAPL, MultiplierModel.ERC8056, new ChainlinkSource(AAPL_USD, PriceKind.TOTAL_RETURN), 4 days);
+        SlateFeed usd = _feed(
+            AAPL,
+            MultiplierModel.ERC8056,
+            new ChainlinkSource(AAPL_USD, PriceKind.TOTAL_RETURN),
+            4 days,
+            Session.EXTENDED
+        );
         SlateQuotedFeed usdg = new SlateQuotedFeed(usd, USDG_USD, 25 hours, "AAPL / USDG");
         (, int256 usdgPrice,,,) = USDG_USD.latestRoundData();
         Quote memory q = usdg.latestQuote();
@@ -109,8 +128,13 @@ contract RobinhoodMainnetForkTest is ForkTest {
     }
 
     function test_poke_onRealTokenWithNothingPending() public {
-        SlateFeed feed =
-            _feed(AAPL, MultiplierModel.ERC8056, new ChainlinkSource(AAPL_USD, PriceKind.TOTAL_RETURN), 4 days);
+        SlateFeed feed = _feed(
+            AAPL,
+            MultiplierModel.ERC8056,
+            new ChainlinkSource(AAPL_USD, PriceKind.TOTAL_RETURN),
+            4 days,
+            Session.EXTENDED
+        );
         assertFalse(feed.poke());
     }
 }
@@ -137,6 +161,8 @@ contract RobinhoodTestnetForkTest is ForkTest {
                 corporateActionGrace: 30 minutes,
                 largeChangeBps: 500,
                 allowMarketClosed: true,
+                calendar: calendar,
+                session: Session.EXTENDED,
                 description: "TSLA / USD"
             })
         );
@@ -170,7 +196,11 @@ contract ArbitrumOneForkTest is ForkTest {
         lab.updateMultiplier(4e18);
         vm.warp(block.timestamp + 31 minutes);
         SlateFeed feed = _feed(
-            address(lab), MultiplierModel.ERC8056, new ChainlinkSource(TSLA_USD, PriceKind.RAW_UNDERLYING), 4 days
+            address(lab),
+            MultiplierModel.ERC8056,
+            new ChainlinkSource(TSLA_USD, PriceKind.RAW_UNDERLYING),
+            4 days,
+            Session.REGULAR
         );
         (, int256 raw,,,) = TSLA_USD.latestRoundData();
         assertEq(feed.latestQuote().answer, raw * 4);

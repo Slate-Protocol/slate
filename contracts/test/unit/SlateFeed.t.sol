@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+import {USMarketCalendar} from "../../src/calendar/USMarketCalendar.sol";
 import {SlateFeed} from "../../src/feeds/SlateFeed.sol";
+import {Session} from "../../src/interfaces/IMarketCalendar.sol";
 import {PriceKind} from "../../src/interfaces/IPriceSource.sol";
 import {FeedStatus, ISlateFeed, Quote} from "../../src/interfaces/ISlateFeed.sol";
-import {MarketSession} from "../../src/libraries/MarketSession.sol";
 import {MultiplierModel} from "../../src/libraries/MultiplierLens.sol";
 import {MockPriceSource} from "../mocks/MockPriceSource.sol";
 import {MockLegacyStockToken, MockRebasingToken, MockStockToken} from "../mocks/MockStockToken.sol";
@@ -23,9 +24,11 @@ contract SlateFeedTest is Test {
     MockPriceSource internal raw;
     MockPriceSource internal tr;
     SlateFeed internal feed;
+    USMarketCalendar internal calendar;
 
     function setUp() public {
         vm.warp(WED_1500);
+        calendar = new USMarketCalendar(address(this));
         crwd = new MockStockToken("CrowdStrike", "CRWD");
         raw = new MockPriceSource(PriceKind.RAW_UNDERLYING);
         tr = new MockPriceSource(PriceKind.TOTAL_RETURN);
@@ -46,6 +49,8 @@ contract SlateFeedTest is Test {
                 corporateActionGrace: GRACE,
                 largeChangeBps: LARGE_BPS,
                 allowMarketClosed: allowClosed,
+                calendar: calendar,
+                session: Session.EXTENDED,
                 description: "CRWD / USD"
             })
         );
@@ -309,24 +314,5 @@ contract SlateFeedTest is Test {
         raw.set(100e8, 8, block.timestamp);
         vm.warp(SAT_1200);
         assertEq(uint8(feed.status()), uint8(FeedStatus.STALE));
-    }
-}
-
-contract MarketSessionTest is Test {
-    function test_knownTimestamps() public pure {
-        assertEq(MarketSession.closedSince(1_790_985_540), 0); // Fri 23:59 UTC
-        assertEq(MarketSession.closedSince(1_790_985_600), 1_790_985_600); // Sat 00:00 UTC
-        assertEq(MarketSession.closedSince(1_791_158_340), 1_790_985_600); // Sun 23:59 UTC
-        assertEq(MarketSession.closedSince(1_791_158_400), 0); // Mon 00:00 UTC
-        assertEq(MarketSession.closedSince(1_790_780_400), 0); // Wed 15:00 UTC
-    }
-
-    function testFuzz_closedSinceIsASaturdayMidnightWithinTwoDays(uint64 ts) public pure {
-        uint256 since = MarketSession.closedSince(ts);
-        if (since == 0) return;
-        assertLe(since, ts);
-        assertLt(ts - since, 2 days);
-        assertEq((since / 1 days + 4) % 7, 6); // day-of-week with Sunday = 0 is Saturday
-        assertEq(since % 1 days, 0);
     }
 }

@@ -7,7 +7,7 @@ import {AggregatorV3Interface} from "./AggregatorV3Interface.sol";
 enum FeedStatus {
     /// @dev Fresh and consistent.
     OK,
-    /// @dev The last price predates the weekend close and is still the right price to use.
+    /// @dev The session is closed (weekend, holiday or overnight gap) and the last price was fresh when it closed.
     MARKET_CLOSED,
     /// @dev Older than the feed's maximum age.
     STALE,

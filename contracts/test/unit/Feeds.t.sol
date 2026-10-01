@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+import {USMarketCalendar} from "../../src/calendar/USMarketCalendar.sol";
 import {SlateFeed} from "../../src/feeds/SlateFeed.sol";
 import {SlateFeedFactory} from "../../src/feeds/SlateFeedFactory.sol";
 import {SlateQuotedFeed} from "../../src/feeds/SlateQuotedFeed.sol";
+import {Session} from "../../src/interfaces/IMarketCalendar.sol";
 import {Observation, PriceKind} from "../../src/interfaces/IPriceSource.sol";
 import {FeedStatus, ISlateFeed, Quote} from "../../src/interfaces/ISlateFeed.sol";
 import {MultiplierModel} from "../../src/libraries/MultiplierLens.sol";
@@ -39,10 +41,12 @@ contract SlateQuotedFeedTest is Test {
     SlateFeed internal base;
     MockAggregator internal usdg;
     SlateQuotedFeed internal inUsdg;
+    USMarketCalendar internal calendar;
 
     function setUp() public {
         vm.warp(1_790_780_400);
         src = new MockPriceSource(PriceKind.RAW_UNDERLYING);
+        calendar = new USMarketCalendar(address(this));
         token = new MockStockToken("CrowdStrike", "CRWD");
         base = new SlateFeed(
             SlateFeed.Config({
@@ -54,6 +58,8 @@ contract SlateQuotedFeedTest is Test {
                 corporateActionGrace: 30 minutes,
                 largeChangeBps: 500,
                 allowMarketClosed: false,
+                calendar: calendar,
+                session: Session.EXTENDED,
                 description: "CRWD / USD"
             })
         );
@@ -98,10 +104,12 @@ contract SlateFeedFactoryTest is Test {
     SlateFeedFactory internal factory;
     MockStockToken internal aapl;
     MockAggregator internal robinhoodFeed;
+    USMarketCalendar internal calendar;
 
     function setUp() public {
         vm.warp(1_790_780_400);
         factory = new SlateFeedFactory();
+        calendar = new USMarketCalendar(address(this));
         aapl = new MockStockToken("Apple", "AAPL");
         aapl.updateMultiplier(1.000566080061092436e18);
         vm.warp(block.timestamp + 1 hours);
@@ -119,6 +127,8 @@ contract SlateFeedFactoryTest is Test {
             corporateActionGrace: 30 minutes,
             largeChangeBps: 500,
             allowMarketClosed: true,
+            calendar: calendar,
+            session: Session.EXTENDED,
             description: "AAPL / USD"
         });
     }

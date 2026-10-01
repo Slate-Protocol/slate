@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+import {IMarketCalendar, Session} from "../interfaces/IMarketCalendar.sol";
 import {IPriceSource, Observation, PriceKind} from "../interfaces/IPriceSource.sol";
 import {FeedStatus, ISlateFeed, Quote} from "../interfaces/ISlateFeed.sol";
-import {MarketSession} from "../libraries/MarketSession.sol";
 import {MultiplierLens, MultiplierModel, MultiplierState} from "../libraries/MultiplierLens.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
@@ -51,6 +51,11 @@ contract SlateFeed is ISlateFeed {
         uint16 largeChangeBps;
         /// @dev Whether `latestRoundData()` serves `MARKET_CLOSED` prices.
         bool allowMarketClosed;
+        /// @dev Trading calendar: weekends, exchange holidays, early closes and New York daylight saving.
+        IMarketCalendar calendar;
+        /// @dev The session the source prices in: `EXTENDED` for Robinhood's 24/5 prices, `REGULAR` for
+        ///      feeds that only update in the exchanges' core session.
+        Session session;
         string description;
     }
 
@@ -72,6 +77,8 @@ contract SlateFeed is ISlateFeed {
     uint32 public immutable corporateActionGrace;
     uint16 public immutable largeChangeBps;
     bool public immutable allowMarketClosed;
+    IMarketCalendar public immutable calendar;
+    Session public immutable session;
 
     Snapshot public snapshot;
     string private _description;
@@ -83,7 +90,9 @@ contract SlateFeed is ISlateFeed {
     error UnsupportedCombination();
 
     constructor(Config memory config) {
-        if (config.token == address(0) || address(config.source) == address(0)) revert ZeroAddress();
+        if (
+            config.token == address(0) || address(config.source) == address(0) || address(config.calendar) == address(0)
+        ) revert ZeroAddress();
         if (config.maxAge == 0) revert ZeroMaxAge();
         PriceKind kind_ = config.source.kind(config.feedId);
         if (kind_ == PriceKind.TOTAL_RETURN && config.model == MultiplierModel.REBASING) {
@@ -99,6 +108,8 @@ contract SlateFeed is ISlateFeed {
         corporateActionGrace = config.corporateActionGrace;
         largeChangeBps = config.largeChangeBps;
         allowMarketClosed = config.allowMarketClosed;
+        calendar = config.calendar;
+        session = config.session;
         _description = config.description;
     }
 
@@ -220,7 +231,7 @@ contract SlateFeed is ISlateFeed {
         }
 
         if (block.timestamp - observedAt <= maxAge) return FeedStatus.OK;
-        uint256 closedSince = MarketSession.closedSince(block.timestamp);
+        uint256 closedSince = calendar.closedSince(block.timestamp, session);
         if (closedSince != 0 && observedAt + maxAge >= closedSince) return FeedStatus.MARKET_CLOSED;
         return FeedStatus.STALE;
     }

@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+import {USMarketCalendar} from "../../src/calendar/USMarketCalendar.sol";
 import {SlateFeed} from "../../src/feeds/SlateFeed.sol";
+import {Session} from "../../src/interfaces/IMarketCalendar.sol";
 import {Observation, PriceKind} from "../../src/interfaces/IPriceSource.sol";
 import {IReportVerifier} from "../../src/interfaces/IReportVerifier.sol";
 import {FeedStatus, Quote} from "../../src/interfaces/ISlateFeed.sol";
@@ -280,8 +282,8 @@ contract SignedSourceTest is ReportBuilder {
         for (uint256 i; i < n; ++i) {
             p[i] = int192(int256(bound(uint256(keccak256(abi.encode(seed, i))), 1, 1e15)));
         }
-        bytes32 domain = keccak256("domain");
-        IReportVerifier.Summary memory sum = verifier.verify(domain, CRWD, _report(domain, CRWD, s, p, 42));
+        bytes32 otherDomain = keccak256("domain");
+        IReportVerifier.Summary memory sum = verifier.verify(otherDomain, CRWD, _report(otherDomain, CRWD, s, p, 42));
 
         int192[] memory sorted = _sorted(p);
         int192 expected = n % 2 == 1 ? sorted[n / 2] : int192((int256(sorted[n / 2 - 1]) + int256(sorted[n / 2])) >> 1);
@@ -310,6 +312,7 @@ contract SignedSourceTest is ReportBuilder {
 
     function test_endToEnd_signedCrwdPriceThroughSlateFeed() public {
         MockStockToken crwd = new MockStockToken("CrowdStrike", "CRWD");
+        USMarketCalendar calendar = new USMarketCalendar(address(this));
         crwd.updateMultiplier(4e18);
         SlateFeed feed = new SlateFeed(
             SlateFeed.Config({
@@ -321,6 +324,8 @@ contract SignedSourceTest is ReportBuilder {
                 corporateActionGrace: 30 minutes,
                 largeChangeBps: 500,
                 allowMarketClosed: false,
+                calendar: calendar,
+                session: Session.EXTENDED,
                 description: "CRWD / USD"
             })
         );
