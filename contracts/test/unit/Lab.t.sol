@@ -6,11 +6,11 @@ import {SlateFeed} from "../../src/feeds/SlateFeed.sol";
 import {Session} from "../../src/interfaces/IMarketCalendar.sol";
 import {PriceKind} from "../../src/interfaces/IPriceSource.sol";
 import {FeedStatus, ISlateFeed, Quote} from "../../src/interfaces/ISlateFeed.sol";
+import {LabSplitSource} from "../../src/lab/LabSplitSource.sol";
 import {NaiveMultiplierFeed} from "../../src/lab/NaiveMultiplierFeed.sol";
 import {SlateLabStock} from "../../src/lab/SlateLabStock.sol";
 import {MultiplierModel} from "../../src/libraries/MultiplierLens.sol";
-import {ChainlinkSource} from "../../src/sources/ChainlinkSource.sol";
-import {MockAggregator} from "../mocks/MockAggregator.sol";
+import {MockPriceSource} from "../mocks/MockPriceSource.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract SlateLabStockTest is Test {
@@ -112,25 +112,28 @@ contract SlateLabStockTest is Test {
     }
 }
 
-/// The Corporate Action Lab's story, as a test: a 4:1 split on a token with a raw share-price feed.
+/// The Corporate Action Lab's story, as deployed: a real share price that never splits (TSLA at $1,060 here),
+/// a Lab token that does, and `LabSplitSource` making the underlying split with it.
 contract NaiveVersusSlateTest is Test {
     SlateLabStock internal stock;
-    MockAggregator internal raw;
+    MockPriceSource internal tsla;
+    LabSplitSource internal split;
     NaiveMultiplierFeed internal naive;
     SlateFeed internal slate;
     uint256 internal splitAt;
 
     function setUp() public {
         vm.warp(1_790_780_400); // a weekday, market open
-        stock = new SlateLabStock("Slate Lab Stock", "LAB");
-        raw = new MockAggregator(8);
-        raw.set(1060e8, block.timestamp);
-        naive = new NaiveMultiplierFeed(raw, stock);
+        stock = new SlateLabStock("Slate Lab TSLA", "labTSLA");
+        tsla = new MockPriceSource(PriceKind.RAW_UNDERLYING);
+        tsla.set(1060e8, 8, block.timestamp);
+        split = new LabSplitSource(tsla, bytes32("TSLA/USD"), stock);
+        naive = new NaiveMultiplierFeed(split, stock);
         slate = new SlateFeed(
             SlateFeed.Config({
                 token: address(stock),
                 model: MultiplierModel.ERC8056,
-                source: new ChainlinkSource(raw, PriceKind.RAW_UNDERLYING),
+                source: split,
                 feedId: bytes32(0),
                 maxAge: 15 minutes,
                 corporateActionGrace: 30 minutes,
@@ -138,7 +141,7 @@ contract NaiveVersusSlateTest is Test {
                 allowMarketClosed: true,
                 calendar: new USMarketCalendar(address(this)),
                 session: Session.EXTENDED,
-                description: "LAB / USD"
+                description: "labTSLA / USD"
             })
         );
         splitAt = block.timestamp + 5 minutes;
@@ -156,7 +159,7 @@ contract NaiveVersusSlateTest is Test {
     }
 
     function test_atTheSplit_naiveQuadruples_slateRefuses() public {
-        vm.warp(splitAt + 1); // multiplier is 4, the last print is still the pre-split $1,060
+        vm.warp(splitAt + 1); // multiplier is 4; the last print is the pre-split $1,060 share price
         (, int256 n,,,) = naive.latestRoundData();
         assertEq(n, 4240e8); // 4x overpriced: borrow against it and walk away
 
@@ -176,7 +179,8 @@ contract NaiveVersusSlateTest is Test {
 
     function test_afterTheGrace_bothAgreeAgain() public {
         vm.warp(splitAt + 31 minutes);
-        raw.set(265e8, block.timestamp); // post-split share price
+        tsla.set(1060e8, 8, block.timestamp); // a new print; the underlying now reads $265 a share
+        assertEq(split.observe(0).price, 265e8);
         (, int256 n,,,) = naive.latestRoundData();
         assertEq(n, 1060e8);
         assertEq(_answer(slate), 1060e8);
@@ -184,7 +188,12 @@ contract NaiveVersusSlateTest is Test {
 
     function test_freshPriceInsideTheGrace_slateStillWaits() public {
         vm.warp(splitAt + 10 minutes);
-        raw.set(265e8, block.timestamp);
+        tsla.set(1060e8, 8, block.timestamp);
         assertEq(uint8(slate.status()), uint8(FeedStatus.CORPORATE_ACTION));
+    }
+
+    function test_multiplierAt_tracksTheSchedule() public {
+        assertEq(stock.multiplierAt(splitAt - 1), 1e18);
+        assertEq(stock.multiplierAt(splitAt), 4e18);
     }
 }

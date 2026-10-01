@@ -13,6 +13,7 @@ import {IPriceSource, PriceKind} from "../src/interfaces/IPriceSource.sol";
 import {IReportVerifier} from "../src/interfaces/IReportVerifier.sol";
 import {ISlateFeed} from "../src/interfaces/ISlateFeed.sol";
 import {IPoolManager, PoolKey} from "../src/interfaces/IUniswap.sol";
+import {LabSplitSource} from "../src/lab/LabSplitSource.sol";
 import {NaiveMultiplierFeed} from "../src/lab/NaiveMultiplierFeed.sol";
 import {SlateLabStock} from "../src/lab/SlateLabStock.sol";
 import {MultiplierModel} from "../src/libraries/MultiplierLens.sol";
@@ -90,26 +91,27 @@ contract Deploy is Script {
             _feed(TESTNET_SYMBOLS[i], TESTNET_TOKENS[i], address(feed));
         }
 
-        // Corporate Action Lab: a Slate test token priced off the same signed TSLA share price, 24/5.
-        SlateLabStock lab = new SlateLabStock("Slate Lab TSLA", "labTSLA");
-        SlateFeed labFeed = factory.deploy(
-            _config(
-                address(lab),
-                source,
-                "TSLA/USD",
-                calendar,
-                Session.EXTENDED,
-                20 minutes,
-                15 minutes,
-                "labTSLA / USD (Slate, ERC-8056 adjusted, 8 dp)"
-            ),
-            "labTSLA"
-        );
-        NaiveMultiplierFeed naive = new NaiveMultiplierFeed(AggregatorV3Interface(_addr("feed:TSLA")), lab);
-        _feed("labTSLA", address(lab), address(labFeed));
-        _contract("SlateLabStock", address(lab));
-        _contract("NaiveMultiplierFeed", address(naive));
+        // Corporate Action Lab: a Slate test token over the same signed TSLA share price, 24/5.
+        _lab(factory, source, "TSLA/USD", calendar, Session.EXTENDED, 20 minutes, "labTSLA-v2");
         _contract("SlateTestDollar", address(new SlateTestDollar(deployer)));
+        _end();
+    }
+
+    /// @notice Replaces the testnet Lab (token, split source, feed, naive feed), keeping everything else.
+    function testnetLab() external {
+        require(block.chainid == 46_630, "not RH testnet");
+        string memory json = vm.readFile(_outPath());
+        _load(json);
+        _begin();
+        _lab(
+            SlateFeedFactory(vm.parseJsonAddress(json, ".contracts['SlateFeedFactory']")),
+            SignedSource(vm.parseJsonAddress(json, ".contracts['SignedSource']")),
+            "TSLA/USD",
+            USMarketCalendar(vm.parseJsonAddress(json, ".contracts['USMarketCalendar']")),
+            Session.EXTENDED,
+            20 minutes,
+            "labTSLA-v2"
+        );
         _end();
     }
 
@@ -240,27 +242,10 @@ contract Deploy is Script {
         SlateFeedFactory factory = new SlateFeedFactory();
         _contract("SlateFeedFactory", address(factory));
 
-        SlateLabStock lab = new SlateLabStock("Slate Lab TSLA", "labTSLA");
         ChainlinkSource tslaRaw = new ChainlinkSource(ARB_TSLA_USD, PriceKind.RAW_UNDERLYING);
-        // Chainlink's equity feeds here update on deviation in the regular session, so the age bound is a day.
-        SlateFeed feed = factory.deploy(
-            _config(
-                address(lab),
-                tslaRaw,
-                "",
-                calendar,
-                Session.REGULAR,
-                1 days,
-                15 minutes,
-                "labTSLA / USD (Slate over Chainlink TSLA raw, ERC-8056 adjusted, 8 dp)"
-            ),
-            "labTSLA"
-        );
-        NaiveMultiplierFeed naive = new NaiveMultiplierFeed(ARB_TSLA_USD, lab);
         _contract("ChainlinkSource TSLA raw", address(tslaRaw));
-        _contract("SlateLabStock", address(lab));
-        _contract("NaiveMultiplierFeed", address(naive));
-        _feed("labTSLA", address(lab), address(feed));
+        // Chainlink's equity feeds here update on deviation in the regular session, so the age bound is a day.
+        _lab(factory, tslaRaw, "", calendar, Session.REGULAR, 1 days, "labTSLA");
         _end();
     }
 
@@ -289,6 +274,38 @@ contract Deploy is Script {
         _contract("TimelockController", address(timelock));
         _contract("SignedSource", address(source));
         _contract("SlateFeedFactory", address(factory));
+    }
+
+    /// @dev A Lab token, the source that splits its underlying with it, its SlateFeed and the naive feed beside it.
+    function _lab(
+        SlateFeedFactory factory,
+        IPriceSource inner,
+        string memory innerFeedId,
+        USMarketCalendar calendar,
+        Session session,
+        uint32 maxAge,
+        bytes32 salt
+    ) internal {
+        SlateLabStock lab = new SlateLabStock("Slate Lab TSLA", "labTSLA");
+        LabSplitSource split = new LabSplitSource(inner, bytes32(bytes(innerFeedId)), lab);
+        SlateFeed feed = factory.deploy(
+            _config(
+                address(lab),
+                split,
+                "",
+                calendar,
+                session,
+                maxAge,
+                15 minutes,
+                "labTSLA / USD (Slate Lab, ERC-8056 adjusted, 8 dp)"
+            ),
+            salt
+        );
+        NaiveMultiplierFeed naive = new NaiveMultiplierFeed(split, lab);
+        _contract("SlateLabStock", address(lab));
+        _contract("LabSplitSource", address(split));
+        _contract("NaiveMultiplierFeed", address(naive));
+        _feed("labTSLA", address(lab), address(feed));
     }
 
     function _signedFeed(
@@ -349,21 +366,27 @@ contract Deploy is Script {
     }
 
     function _contract(string memory name, address addr) internal {
+        for (uint256 i; i < _names.length; ++i) {
+            if (keccak256(bytes(_names[i])) == keccak256(bytes(name))) {
+                _addresses[i] = addr;
+                return;
+            }
+        }
         _names.push(name);
         _addresses.push(addr);
     }
 
     function _feed(string memory symbol, address token, address feed) internal {
+        for (uint256 i; i < _symbols.length; ++i) {
+            if (keccak256(bytes(_symbols[i])) == keccak256(bytes(symbol))) {
+                _tokens[i] = token;
+                _feeds[i] = feed;
+                return;
+            }
+        }
         _symbols.push(symbol);
         _tokens.push(token);
         _feeds.push(feed);
-    }
-
-    function _addr(string memory key) internal view returns (address) {
-        for (uint256 i; i < _symbols.length; ++i) {
-            if (keccak256(bytes(string.concat("feed:", _symbols[i]))) == keccak256(bytes(key))) return _feeds[i];
-        }
-        revert("unknown");
     }
 
     /// @dev Carries a previous run's entries into this one.

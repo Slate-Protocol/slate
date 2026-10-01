@@ -41,8 +41,7 @@ contract SlateLabStock is ERC20, IERC8056, IOraclePausable {
     // ------------------------------------------------------------------------------------------------
 
     function uiMultiplier() public view returns (uint256) {
-        if (block.timestamp >= _effectiveAt && _newMultiplier != 0) return _newMultiplier;
-        return _multiplier == 0 ? ONE : _multiplier;
+        return multiplierAt(block.timestamp);
     }
 
     function newUIMultiplier() external view returns (uint256) {
@@ -51,6 +50,13 @@ contract SlateLabStock is ERC20, IERC8056, IOraclePausable {
 
     function effectiveAt() external view returns (uint256) {
         return _effectiveAt;
+    }
+
+    /// @notice The multiplier in force at `timestamp`, for the most recent scheduled action. Robinhood's tokens have
+    ///         no such view; the Lab needs it to simulate the underlying share price splitting with the token.
+    function multiplierAt(uint256 timestamp) public view returns (uint256) {
+        if (timestamp >= _effectiveAt && _newMultiplier != 0) return _newMultiplier;
+        return _multiplier == 0 ? ONE : _multiplier;
     }
 
     /// @notice Never paused: the Lab is about multipliers, not pauses.
