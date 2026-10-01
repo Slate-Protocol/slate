@@ -14,14 +14,15 @@
         "TimelockController": "0xFc42883Ae9ac9FeCE9A3b656f30D356775Fe2270",
         "SignedSource": "0x8B27311a3493a85E063f97e4bB59cf3a22aEA507",
         "SlateFeedFactory": "0xb9b82feE5926C74F5497C7571770d1532E8C9118",
-        "SlateLabStock": "0x4089D054029EAD138d26E6680d28fCCB93eb6C4E",
-        "NaiveMultiplierFeed": "0x2A9060CeEf039e0715E2D47E478432B00fB8AdCd",
+        "SlateLabStock": "0x80A7D0cbE2Bb2336dD6004c956D718a1e3C4DD13",
+        "NaiveMultiplierFeed": "0x207633B0e986d8097C64F099a982525283C7DD6e",
         "SlateTestDollar": "0x239f410D4D2152ba890F378f6B4Aa103B9ea7FEF",
         "SlateBasket": "0xed509B491F58D19eB489aC7C01c7a4bcBCf4e1bf",
         "SlateNavFeed": "0x8E2b6C63463DCf51b307811dB41bd60d7987608D",
         "UniswapV4Venue": "0xCd1A61CA1cD4a4547a06e04A915535Ac04F8529B",
         "SlateV4Seeder": "0xD2ECFBf050F2834722F3cC57E49b258A68851eF0",
-        "SlateRouter": "0x3de24B7AEaD51D137c6C6B2c2820587108FA05Bd"
+        "SlateRouter": "0x3de24B7AEaD51D137c6C6B2c2820587108FA05Bd",
+        "LabSplitSource": "0x8FE56Cb055dE1659016fF4507bb46C4bD24142B8"
       }
     },
     "42161": {
@@ -70,8 +71,8 @@
     {
       "symbol": "labTSLA",
       "chainId": 46630,
-      "token": "0x4089D054029EAD138d26E6680d28fCCB93eb6C4E",
-      "feed": "0xA6aC82c10b18ccB0fD4d2Ca200C9e8068243a9D4"
+      "token": "0x80A7D0cbE2Bb2336dD6004c956D718a1e3C4DD13",
+      "feed": "0x87Cde7046A368F192B3F1C96a7bf2545B447788E"
     }
   ],
   "experiments": {
