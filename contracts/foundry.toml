@@ -10,7 +10,7 @@ optimizer = true
 optimizer_runs = 10_000
 bytecode_hash = "none"
 cbor_metadata = false
-fs_permissions = [{ access = "read-write", path = "./deployments" }]
+fs_permissions = [{ access = "read-write", path = "../deployments" }]
 
 [profile.default.fuzz]
 runs = 1024
@@ -41,5 +41,5 @@ arbitrum = "https://arb1.arbitrum.io/rpc"
 # External interfaces (ERC-8056's uiMultiplier, Chainlink's API) and public immutable getters are
 # named for their callers, not for Solidity style.
 exclude_lints = ["mixed-case-function", "screaming-snake-case-immutable", "asm-keccak256"]
-# Tests cast literals freely (bytes32("CRWD/USD"), bounded fuzz inputs); lint production code only.
-ignore = ["test/**/*.sol"]
+# Tests and deploy scripts cast literals freely (bytes32("CRWD/USD"), bounded fuzz inputs); lint production code only.
+ignore = ["test/**/*.sol", "script/**/*.sol"]

@@ -73,6 +73,8 @@ contract RobinhoodTestnetRouterForkTest is RouterForkTest {
     SlateFeed internal feed;
     SlateBasket internal basket;
     SlateNavFeed internal nav;
+    SlateV4Seeder internal seeder;
+    PoolKey internal poolKey;
 
     function setUp() public {
         _fork("rh_testnet");
@@ -150,15 +152,32 @@ contract RobinhoodTestnetRouterForkTest is RouterForkTest {
         assertEq(basket.totalSupply(), 0);
     }
 
+    /// Testnet pools have no arbitrageurs. `recenter` swaps an off-market pool back to the Slate price, and then
+    /// the router fills there.
+    function test_recenter_movesTheOffMarketPoolToTheSlatePrice() public {
+        (, SlateRouter router, UniswapV4Venue venue, bytes memory route) = _v4Setup(TSLA_PRICE * 85 / 100);
+        assertTrue(seeder.recenter(poolKey, feed, 50, type(uint256).max, type(uint256).max));
+        uint256 current = seeder.sqrtPriceOf(poolKey);
+        assertApproxEqAbs(current, seeder.targetSqrtPrice(poolKey, feed), 1);
+        assertFalse(seeder.recenter(poolKey, feed, 50, type(uint256).max, type(uint256).max)); // already there
+
+        (uint256 fair,) = router.fairCash(2e18);
+        SlateRouter.Leg[] memory legs = _legs(venue, route);
+        vm.prank(alice);
+        uint256 spent = router.createWithCash(2e18, alice, legs, fair * 2, block.timestamp);
+        assertLt(spent, fair * 1006 / 1000);
+    }
+
     function _v4Setup(int192 poolPrice)
         internal
         returns (SlateTestDollar testusd, SlateRouter router, UniswapV4Venue venue, bytes memory route)
     {
         testusd = new SlateTestDollar(address(this));
-        SlateV4Seeder seeder = new SlateV4Seeder(POOL_MANAGER);
+        seeder = new SlateV4Seeder(POOL_MANAGER);
         venue = new UniswapV4Venue(POOL_MANAGER);
         route = abi.encode(uint24(3000), int24(60), address(0));
         (PoolKey memory key, bool usdIs0) = venue.poolKey(address(testusd), TSLA, route);
+        poolKey = key;
 
         // Price as token1 per token0 in raw units, then √ × 2^96.
         uint256 usdPerTsla = uint256(int256(poolPrice)) / 100; // TESTUSD units (6 dp) per 1e18 TSLA units
@@ -173,6 +192,7 @@ contract RobinhoodTestnetRouterForkTest is RouterForkTest {
         IERC20(TSLA).approve(address(seeder), type(uint256).max);
         testusd.approve(address(seeder), type(uint256).max);
         seeder.seed(key, uint160(sqrtPriceX96), -887_220, 887_220, liquidity, type(uint256).max, type(uint256).max);
+        assertEq(seeder.sqrtPriceOf(key), sqrtPriceX96);
 
         router = new SlateRouter(nav, testusd, AggregatorV3Interface(address(0)), 0, 300);
         testusd.mint(alice, 100_000e6);
