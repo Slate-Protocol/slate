@@ -214,3 +214,9 @@
 [data-theme="light"] .shiki span {
   color: var(--shiki-light);
 }
+
+/* Identifiers in tables stay whole; the table scrolls instead. */
+.prose .table code {
+  overflow-wrap: normal;
+  white-space: nowrap;
+}
