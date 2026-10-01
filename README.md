@@ -39,6 +39,7 @@ A multiplier-correct, fail-closed pricing layer for Robinhood stock tokens (ERC-
 2. **The basket's NAV is itself a drop-in `AggregatorV3Interface` feed**, so a Slate share can be priced by any protocol that reads Chainlink.
 
 Prices can be quoted in USD or in **Paxos USDG**, through the USDG/USD Chainlink feed on Robinhood Chain.
+On testnet, **TESTUSD** (Slate Test Dollar) is the testnet stand-in for Paxos USDG. Not USDG.
 
 ### Why a stock-token price is harder than it looks
 
