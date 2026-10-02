@@ -23,10 +23,19 @@ export const CROSS_CHECK_FEEDS: Record<string, Address> = {
   TSLA: "0x3609baAa0a9b1f0FE4d6CC01884585d0e191C3E3",
 };
 
+/**
+ * Mainnet feeds for stock tokens Chainlink does not price: CRWD (4x after its split), CCL (1.0215, its other non-1
+ * multiplier) and a spread of liquid, recognisable names. `Deploy.s.sol` deploys the same list.
+ */
+export const MAINNET_SYMBOLS = [
+  "CRWD", "NFLX", "AVGO", "LLY", "COST", "BA", "JNJ", "IBM", "PFE", "F",
+  "RIVN", "SNAP", "RBLX", "RDDT", "HIMS", "SHOP", "LMT", "GLD", "AMC", "CCL",
+];
+
 /** Which deployed feeds read the signed price, per chain. Feed ids are `<SYMBOL>/USD`. */
 export const SIGNED_SYMBOLS: Record<number, string[]> = {
   46630: ["TSLA", "AMZN", "AMD", "PLTR", "NFLX"],
-  4663: ["CRWD"],
+  4663: MAINNET_SYMBOLS,
 };
 
 /**
@@ -39,8 +48,9 @@ export const SIGNED_SYMBOLS: Record<number, string[]> = {
 export const PRESIGN = {
   chainId: 4663,
   signedSource: "0xf0b57272f1D69083019E8953B82bC128002D7526" as Address,
-  symbols: ["CRWD"],
-  keep: 24,
+  symbols: MAINNET_SYMBOLS,
+  /** Reports kept per symbol: the newest and one per five minutes before it. */
+  keep: 6,
 };
 
 /** Testnet stocks whose TESTUSD pools the keeper keeps on the Slate price. */

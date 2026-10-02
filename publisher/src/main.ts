@@ -295,7 +295,12 @@ async function keepPools(ctx: Ctx) {
 // ------------------------------------------------------------------------------------------------
 
 async function presign(keys: Keys, quotes: Map<string, Promise<Quote>>, now: number) {
-  for (const symbol of PRESIGN.symbols) {
+  const queue = [...PRESIGN.symbols];
+  await Promise.all(Array.from({ length: 5 }, () => presignWorker(queue, keys, quotes, now)));
+}
+
+async function presignWorker(queue: string[], keys: Keys, quotes: Map<string, Promise<Quote>>, now: number) {
+  for (let symbol = queue.shift(); symbol; symbol = queue.shift()) {
     try {
       if (!quotes.has(symbol)) quotes.set(symbol, fetchQuote(symbol));
       const q = await quotes.get(symbol)!;
@@ -323,13 +328,14 @@ async function presign(keys: Keys, quotes: Map<string, Promise<Quote>>, now: num
         signedSource: PRESIGN.signedSource,
         report,
       });
-      // Keep the newest report and one per five minutes before it.
+      // Per symbol, keep the newest report and one per five minutes before it.
+      const mine = state.presigned.filter((r) => r.symbol === symbol).reverse();
       const kept: typeof state.presigned = [];
-      for (const r of [...state.presigned].reverse()) {
+      for (const r of mine) {
         if (kept.length === 0 || kept[kept.length - 1].observedAt - r.observedAt >= 300) kept.push(r);
         if (kept.length >= PRESIGN.keep) break;
       }
-      state.presigned = kept.reverse();
+      state.presigned = [...state.presigned.filter((r) => r.symbol !== symbol), ...kept.reverse()];
     } catch (e) {
       log("presign failed", { symbol, error: reason(e) });
     }
@@ -373,7 +379,7 @@ async function cycle(keys: Keys) {
   );
   // Until mainnet's SignedSource exists, sign CRWD for it while the market is open (testnet's calendar says so).
   const mainnetDeployed = nets.some((n) => n.chain.id === PRESIGN.chainId);
-  if (!mainnetDeployed && state.marketOpen[46630]) await presign(keys, quotes, now);
+  if (!mainnetDeployed && state.marketOpen[46630] && state.cycles % 4 === 2) await presign(keys, quotes, now);
   // The accuracy board, about once a minute, off the critical path: signed, never submitted. See board.ts.
   if (state.cycles % 4 === 0 && !boardBusy) {
     boardBusy = true;
