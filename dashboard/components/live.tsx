@@ -409,7 +409,7 @@ export function CreatePanel({ testnet }: { testnet: Testnet }) {
             <span className="font-mono whitespace-nowrap">{maxCash !== undefined ? `${num(maxCash, 6, 2)} TESTUSD` : "—"}</span>
           </div>
           <span className="text-[13px] text-muted">
-            TESTUSD (Slate Test Dollar): testnet stand-in for Paxos USDG. Not USDG. On mainnet the router takes USDG.
+            TESTUSD (Slate Test Dollar): testnet stand-in for Paxos USDG. Not USDG. The router is built for USDG on mainnet, proven on a fork.
           </span>
           {valid && <LiquidityNote liquidity={liquidity} shares={input} />}
         </div>

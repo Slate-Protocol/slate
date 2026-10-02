@@ -17,7 +17,7 @@ It keeps the base feed's status. It reports `STALE` if the USDG/USD answer is ol
 
 ## Buying in USDG
 
-On mainnet, `SlateRouter` takes USDG as its cash token and prices it with the same Chainlink USDG/USD feed. A fill's effective price is `USDG spent × USDG/USD ÷ tokens received`. A depeg moves every leg's effective price, and past 3% the router refuses: USDG at $0.98 still clears the band, USDG at $0.96 does not.
+Pointed at mainnet, `SlateRouter` takes USDG as its cash token and prices it with the same Chainlink USDG/USD feed. That is proven on a fork below; Slate's mainnet deploy ships the feeds, not the router. A fill's effective price is `USDG spent × USDG/USD ÷ tokens received`. A depeg moves every leg's effective price, and past 3% the router refuses: USDG at $0.98 still clears the band, USDG at $0.96 does not.
 
 **On a fork of Robinhood Chain mainnet**, through the official `SwapRouter02` (`0xcaf681a66d020601342297493863e78c959e5cb2`) and the live **AAPL/USDG** pool (`0xAae0d815EE56e4092a5E5C2911E676Fea50B2d6D`, 0.05% fee), the router bought 0.1 AAPL:
 
@@ -33,7 +33,7 @@ SLATE_FORK=1 SLATE_FORK_URL_rh_mainnet=http://127.0.0.1:8548 \
   forge test --match-test test_aaplUsdgPool_createsWithinTheBand -vv
 ```
 
-The same router targets the NVDA/USDG (`0xd4EB21209C4D6093f80B5b84f5C45cc093EA14a3`) and SPY/USDG (`0xa7Bb1AC63BBaB0C44316E6c8C455213441689167`) pools.
+The same router can target the NVDA/USDG (`0xd4EB21209C4D6093f80B5b84f5C45cc093EA14a3`) and SPY/USDG (`0xa7Bb1AC63BBaB0C44316E6c8C455213441689167`) pools.
 
 ## Testnet: TESTUSD
 
