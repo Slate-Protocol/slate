@@ -105,7 +105,29 @@ export const labStockAbi = parseAbi([
   "function effectiveAt() view returns (uint256)",
   "function lastScheduledAt() view returns (uint256)",
   "function scheduleCorporateAction(uint256 newMultiplier, uint256 effectiveAt)",
+  "function faucet()",
   "error MultiplierOutOfRange(uint256 multiplier)",
   "error EffectiveTimeOutOfRange(uint256 effectiveAt)",
   "error Cooldown(uint256 nextAt)",
+]);
+
+/** StockLender: the integration example. It prices collateral with `latestRoundData()` only. */
+export const lenderAbi = parseAbi([
+  "function priceOf(address token) view returns (bool ok, uint256 price, uint256 updatedAt)",
+  "function quote(address token, uint256 amount) view returns (bool ok, uint256 value, uint256 maxBorrow)",
+  "function positionOf(address token, address who) view returns (bool ok, uint256 collateral, uint256 debt, uint256 borrowLimit, uint256 liquidationThreshold)",
+  "function markets(address token) view returns (address feed, uint8 feedDecimals, uint8 tokenDecimals, uint16 ltvBps, uint16 liquidationBps, uint16 bonusBps, uint32 maxAge, bool listed)",
+  "function cash() view returns (uint256)",
+  "function totalDebt() view returns (uint256)",
+  "function deposit(address token, uint256 amount)",
+  "function withdraw(address token, uint256 amount)",
+  "function borrow(address token, uint256 amount)",
+  "function repay(address token, address account, uint256 amount) returns (uint256)",
+  "error NotListed(address token)",
+  "error ZeroAmount()",
+  "error PriceUnavailable(address token)",
+  "error ExceedsLimit(uint256 debt, uint256 limit)",
+  "error InsufficientCollateral(uint256 requested, uint256 available)",
+  "error InsufficientLiquidity(uint256 requested, uint256 available)",
+  "error Healthy(uint256 debt, uint256 threshold)",
 ]);

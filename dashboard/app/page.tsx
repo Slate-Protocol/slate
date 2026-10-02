@@ -1,3 +1,4 @@
+import { LendPanel } from "@/components/lend";
 import { BasketPanel, CreatePanel, LabPanel, UsdgProof } from "@/components/live";
 import { FeedsTable, Legend, Overview } from "@/components/sections";
 import { Shell } from "@/components/shell";
@@ -17,6 +18,7 @@ export default async function Dashboard() {
         <BasketPanel testnet={data.testnet} usdgUsd={data.usdgUsd} />
         <CreatePanel testnet={data.testnet} />
       </div>
+      <LendPanel testnet={data.testnet} />
       <LabPanel testnet={data.testnet} />
     </Shell>
   );

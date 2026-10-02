@@ -3,6 +3,7 @@ pragma solidity ^0.8.24;
 
 import {SlateBasket} from "../src/basket/SlateBasket.sol";
 import {USMarketCalendar} from "../src/calendar/USMarketCalendar.sol";
+import {StockLender} from "../src/examples/StockLender.sol";
 import {SlateFeed} from "../src/feeds/SlateFeed.sol";
 import {SlateFeedFactory} from "../src/feeds/SlateFeedFactory.sol";
 import {SlateNavFeed} from "../src/feeds/SlateNavFeed.sol";
@@ -192,6 +193,44 @@ contract Deploy is Script {
         (uint256 max0, uint256 max1) =
             cashIs0 ? (type(uint256).max, POOL_STOCK * 12 / 10) : (POOL_STOCK * 12 / 10, type(uint256).max);
         seeder.seed(key, sqrtPrice, lower, upper, uint128(liquidity), max0, max1);
+    }
+
+    /// @notice StockLender: a lending market that prices collateral through Slate feeds with nothing but
+    ///         `latestRoundData()`. Markets on the five stock feeds and labTSLA, loans in TESTUSD. Beside it, LAB ONLY,
+    ///         the same contract on the naive labTSLA feed, to show what a split does to a lender that uses one.
+    function testnetLend() external {
+        require(block.chainid == 46_630, "not RH testnet");
+        string memory json = vm.readFile(_outPath());
+        _load(json);
+        _begin();
+        SlateTestDollar testusd = SlateTestDollar(vm.parseJsonAddress(json, ".contracts['SlateTestDollar']"));
+        StockLender lender = new StockLender(testusd, deployer);
+        for (uint256 i; i < 5; ++i) {
+            address feed = vm.parseJsonAddress(json, string.concat(".feeds['", TESTNET_SYMBOLS[i], "'].feed"));
+            lender.listMarket(TESTNET_TOKENS[i], AggregatorV3Interface(feed), 5000, 6500, 500, 3 days);
+        }
+        address lab = vm.parseJsonAddress(json, ".feeds['labTSLA'].token");
+        lender.listMarket(
+            lab, AggregatorV3Interface(vm.parseJsonAddress(json, ".feeds['labTSLA'].feed")), 5000, 6500, 500, 3 days
+        );
+        testusd.mint(deployer, 70_000e6);
+        testusd.approve(address(lender), 50_000e6);
+        lender.supply(50_000e6);
+
+        StockLender naive = new StockLender(testusd, deployer);
+        naive.listMarket(
+            lab,
+            AggregatorV3Interface(vm.parseJsonAddress(json, ".contracts['NaiveMultiplierFeed']")),
+            5000,
+            6500,
+            500,
+            3 days
+        );
+        testusd.approve(address(naive), 20_000e6);
+        naive.supply(20_000e6);
+        _contract("StockLender", address(lender));
+        _contract("StockLender (naive feed, LAB ONLY)", address(naive));
+        _end();
     }
 
     // ------------------------------------------------------------------------------------------------

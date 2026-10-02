@@ -31,8 +31,8 @@ import { useCashLiquidity, type Liquidity } from "@/lib/liquidity";
 import { FEED_STATUS, type FeedStatusLabel } from "@/lib/status";
 import { LabTag, Pill, card } from "./sections";
 
-const TESTNET = 46630;
-const POLL = { refetchInterval: 10_000 } as const;
+export const TESTNET = 46630;
+export const POLL = { refetchInterval: 10_000 } as const;
 const V4_ROUTE = encodeAbiParameters(
   [{ type: "uint24" }, { type: "int24" }, { type: "address" }],
   [3000, 60, zeroAddress],
@@ -42,10 +42,10 @@ type Testnet = DashboardData["testnet"];
 
 type Read = { address: Address; abi: Abi; functionName: string; args?: readonly unknown[]; chainId: number };
 /** Mixed read lists defeat wagmi's tuple inference; results are cast where they are used. */
-const reads = (xs: Read[]) => xs as unknown as readonly ContractFunctionParameters[];
+export const reads = (xs: Read[]) => xs as unknown as readonly ContractFunctionParameters[];
 
 /** Unix seconds, ticking once a second. */
-function useNow() {
+export function useNow() {
   const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
   useEffect(() => {
     const id = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
@@ -54,13 +54,13 @@ function useNow() {
   return now;
 }
 
-const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
-const usd = (v: number) => `$${v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-const num = (v: bigint, decimals: number, digits = 4) =>
+export const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
+export const usd = (v: number) => `$${v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+export const num = (v: bigint, decimals: number, digits = 4) =>
   Number(formatUnits(v, decimals)).toLocaleString("en-US", { maximumFractionDigits: digits });
-const statusOf = (s: number | undefined): FeedStatusLabel => (s === undefined ? "No data" : (FEED_STATUS[s] ?? "No data"));
+export const statusOf = (s: number | undefined): FeedStatusLabel => (s === undefined ? "No data" : (FEED_STATUS[s] ?? "No data"));
 
-function ExplorerLink({ explorer, address, label }: { explorer: string; address: string; label?: string }) {
+export function ExplorerLink({ explorer, address, label }: { explorer: string; address: string; label?: string }) {
   return (
     <a href={`${explorer}/address/${address}`} target="_blank" rel="noreferrer" className="font-mono text-accent-text underline-offset-2 hover:underline">
       {label ?? short(address)}
@@ -79,6 +79,13 @@ function explain(e: unknown): string {
         return `Route refused on leg ${Number(i) + 1}: the pool's price ${usd(Number(formatUnits(effective, 8)))} is outside 3% of the Slate price ${usd(Number(formatUnits(feed, 8)))}.`;
       }
       if (errorName === "FeedUnavailable") return `A constituent's feed is ${statusOf(Number(args[0]))}; Slate will not price through it.`;
+      if (errorName === "PriceUnavailable") return "No usable price: the feed refuses right now, so the lender won't lend or liquidate against it. Repaying still works.";
+      if (errorName === "ExceedsLimit") {
+        const [debt, limit] = args as bigint[];
+        return `That would take the loan to ${num(debt, 6, 2)} TESTUSD, above this position's limit of ${num(limit, 6, 2)}.`;
+      }
+      if (errorName === "InsufficientLiquidity") return `The lender has ${num((args as bigint[])[1], 6, 2)} TESTUSD available.`;
+      if (errorName === "InsufficientCollateral") return `You have ${num((args as bigint[])[1], 18, 4)} deposited.`;
       if (errorName === "Cooldown") return `Cooling down until ${new Date(Number(args[0]) * 1000).toLocaleTimeString()}.`;
       return `${errorName}(${args.map(String).join(", ")})`;
     }
@@ -90,7 +97,7 @@ function explain(e: unknown): string {
 type WriteRequest = { address: Address; abi: Abi; functionName: string; args?: readonly unknown[] };
 
 /** Runs one transaction on RH testnet, switching the wallet's chain first if needed. */
-function useTx(onDone?: () => void) {
+export function useTx(onDone?: () => void) {
   const config = useConfig();
   const { chainId, address } = useConnection();
   const [busy, setBusy] = useState<string | null>(null);
@@ -117,7 +124,7 @@ function useTx(onDone?: () => void) {
   return { run, busy, message };
 }
 
-function TxMessage({ message, explorer }: { message: ReturnType<typeof useTx>["message"]; explorer: string }) {
+export function TxMessage({ message, explorer }: { message: ReturnType<typeof useTx>["message"]; explorer: string }) {
   if (!message) return null;
   return (
     <p role="status" className={`rounded-lg px-3 py-2.5 text-sm ${message.kind === "ok" ? "bg-ok-bg text-ok" : "bg-stop-bg text-stop"}`}>
@@ -131,9 +138,9 @@ function TxMessage({ message, explorer }: { message: ReturnType<typeof useTx>["m
   );
 }
 
-const button =
+export const button =
   "min-h-[46px] rounded-[10px] bg-accent px-4 font-semibold text-on-accent hover:brightness-105 disabled:opacity-60";
-const secondary = "min-h-[42px] rounded-[10px] border border-border px-4 text-sm font-semibold hover:border-faint disabled:opacity-60";
+export const secondary = "min-h-[42px] rounded-[10px] border border-border px-4 text-sm font-semibold hover:border-faint disabled:opacity-60";
 
 // ------------------------------------------------------------------------------------------------
 // Mainnet USDG proof
