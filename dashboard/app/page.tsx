@@ -19,9 +19,9 @@ export default async function Dashboard() {
         <BasketPanel testnet={data.testnet} usdgUsd={data.usdgUsd} />
         <CreatePanel testnet={data.testnet} />
       </div>
-      <LendPanel testnet={data.testnet} />
+      <LendPanel testnet={data.testnet} mainnet={data.mainnet} />
       <LabPanel testnet={data.testnet} />
-      <SignersPanel testnet={data.testnet} docsUrl={process.env.NEXT_PUBLIC_DOCS_URL ?? "https://docs.slate.0xo.in"} />
+      <SignersPanel testnet={data.testnet} mainnet={data.mainnet} docsUrl={process.env.NEXT_PUBLIC_DOCS_URL ?? "https://docs.slate.0xo.in"} />
     </Shell>
   );
 }

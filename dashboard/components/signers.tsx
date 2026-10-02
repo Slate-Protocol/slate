@@ -1,13 +1,24 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { parseAbi, toFunctionSelector, type Address, type Hex } from "viem";
+import { parseAbi, parseAbiItem, toFunctionSelector, type Address, type Hex } from "viem";
+import { client } from "@/lib/chains";
 import { useReadContracts } from "wagmi";
 import type { DashboardData } from "@/lib/data";
 import { ExplorerLink, POLL, TESTNET, reads, useNow } from "./live";
+
+const MAINNET = 4663;
+const MAINNET_EXPLORER = "https://robinhoodchain.blockscout.com";
+/** The mainnet timelock's deployment block: its events are read from here, straight from the chain. */
+const MAINNET_TIMELOCK_BLOCK = 78_467_125n;
+const callScheduled = parseAbiItem(
+  "event CallScheduled(bytes32 indexed id, uint256 indexed index, address target, uint256 value, bytes data, bytes32 predecessor, uint256 delay)",
+);
 import { card } from "./sections";
 
 type Testnet = DashboardData["testnet"];
+type Mainnet = DashboardData["mainnet"];
 
 const sourceAbi = parseAbi([
   "function signers() view returns (address[])",
@@ -47,6 +58,12 @@ async function scheduled(explorer: string, timelock: Address): Promise<Scheduled
     });
 }
 
+/** The same, read from the chain's logs (mainnet's explorer API sits behind a browser check). */
+async function scheduledOnChain(timelock: Address): Promise<Scheduled[]> {
+  const logs = await client(MAINNET).getLogs({ address: timelock, event: callScheduled, fromBlock: MAINNET_TIMELOCK_BLOCK });
+  return logs.map((l) => ({ id: l.args.id as Hex, target: l.args.target as Address, data: l.args.data as Hex, tx: l.transactionHash as Hex }));
+}
+
 const when = (t: number) =>
   new Date(t * 1000).toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZoneName: "short" });
 
@@ -56,37 +73,42 @@ function countdown(seconds: number) {
   return h > 0 ? `${h} h ${m} min` : `${m} min ${seconds % 60} s`;
 }
 
-export function SignersPanel({ testnet, docsUrl }: { testnet: Testnet; docsUrl: string }) {
-  const c = testnet.contracts;
+export function SignersPanel({ testnet, mainnet, docsUrl }: { testnet: Testnet; mainnet: Mainnet; docsUrl: string }) {
+  const hasMainnet = !!mainnet.contracts.SignedSource;
+  const [net, setNet] = useState<"mainnet" | "testnet">(hasMainnet ? "mainnet" : "testnet");
+  const onMainnet = net === "mainnet" && hasMainnet;
+  const c = onMainnet ? mainnet.contracts : testnet.contracts;
+  const chainId = onMainnet ? MAINNET : TESTNET;
+  const explorer = onMainnet ? MAINNET_EXPLORER : testnet.explorer;
   const source = c.SignedSource as Address | undefined;
   const timelock = c.TimelockController as Address | undefined;
   const calendar = c.USMarketCalendar as Address | undefined;
   const now = useNow();
   const { data } = useReadContracts({
     contracts: reads([
-      { address: source!, abi: sourceAbi, functionName: "signers", chainId: TESTNET },
-      { address: source!, abi: sourceAbi, functionName: "quorum", chainId: TESTNET },
-      { address: source!, abi: sourceAbi, functionName: "owner", chainId: TESTNET },
-      { address: source!, abi: sourceAbi, functionName: "maxSpreadBps", chainId: TESTNET },
-      { address: source!, abi: sourceAbi, functionName: "unanimousJumpBps", chainId: TESTNET },
-      { address: source!, abi: sourceAbi, functionName: "maxFutureSkew", chainId: TESTNET },
-      { address: timelock!, abi: timelockAbi, functionName: "getMinDelay", chainId: TESTNET },
-      { address: calendar!, abi: ownableAbi, functionName: "owner", chainId: TESTNET },
-      { address: calendar!, abi: ownableAbi, functionName: "pendingOwner", chainId: TESTNET },
+      { address: source!, abi: sourceAbi, functionName: "signers", chainId },
+      { address: source!, abi: sourceAbi, functionName: "quorum", chainId },
+      { address: source!, abi: sourceAbi, functionName: "owner", chainId },
+      { address: source!, abi: sourceAbi, functionName: "maxSpreadBps", chainId },
+      { address: source!, abi: sourceAbi, functionName: "unanimousJumpBps", chainId },
+      { address: source!, abi: sourceAbi, functionName: "maxFutureSkew", chainId },
+      { address: timelock!, abi: timelockAbi, functionName: "getMinDelay", chainId },
+      { address: calendar!, abi: ownableAbi, functionName: "owner", chainId },
+      { address: calendar!, abi: ownableAbi, functionName: "pendingOwner", chainId },
     ]),
     query: { ...POLL, enabled: !!source && !!timelock && !!calendar },
   });
   const ops = useQuery({
-    queryKey: ["timelock-ops", timelock],
-    queryFn: () => scheduled(testnet.explorer, timelock!),
+    queryKey: ["timelock-ops", chainId, timelock],
+    queryFn: () => (onMainnet ? scheduledOnChain(timelock!) : scheduled(explorer, timelock!)),
     enabled: !!timelock,
     refetchInterval: 60_000,
   }).data;
   const { data: opState } = useReadContracts({
     contracts: reads(
       (ops ?? []).flatMap((o) => [
-        { address: timelock!, abi: timelockAbi, functionName: "getTimestamp", args: [o.id], chainId: TESTNET },
-        { address: timelock!, abi: timelockAbi, functionName: "isOperationDone", args: [o.id], chainId: TESTNET },
+        { address: timelock!, abi: timelockAbi, functionName: "getTimestamp", args: [o.id], chainId },
+        { address: timelock!, abi: timelockAbi, functionName: "isOperationDone", args: [o.id], chainId },
       ]),
     ),
     query: { ...POLL, enabled: !!ops?.length },
@@ -116,8 +138,23 @@ export function SignersPanel({ testnet, docsUrl }: { testnet: Testnet; docsUrl: 
       <div className="flex max-w-[780px] flex-col gap-1">
         <h2 id="signers-title" className="flex flex-wrap items-center gap-2 text-lg font-semibold">
           Who signs the prices
-          <span className="rounded-md bg-surface-2 px-2 py-0.5 text-xs font-semibold">On-chain · RH testnet</span>
         </h2>
+        {hasMainnet && (
+          <div role="tablist" aria-label="Network" className="inline-flex w-fit overflow-hidden rounded-lg border border-border">
+            {(["mainnet", "testnet"] as const).map((n) => (
+              <button
+                key={n}
+                type="button"
+                role="tab"
+                aria-selected={net === n}
+                onClick={() => setNet(n)}
+                className={`px-3 py-1.5 text-sm ${net === n ? "bg-surface-2 font-semibold" : "text-muted hover:text-text"}`}
+              >
+                {n === "mainnet" ? "Robinhood Chain mainnet" : "RH testnet"}
+              </button>
+            ))}
+          </div>
+        )}
         <p className="text-muted">
           Every Slate price needs {quorum ?? "a quorum of"}{" "}signatures from the set below, read from SignedSource now. All of
           these keys are Slate&apos;s today. Only the timelock can change the set, and only after a{" "}
@@ -134,7 +171,7 @@ export function SignersPanel({ testnet, docsUrl }: { testnet: Testnet; docsUrl: 
           <ul className="flex flex-col gap-1.5">
             {(signers ?? []).map((s, i) => (
               <li key={s} className="flex items-center justify-between gap-3 rounded-lg bg-surface-2 px-3 py-2 text-sm">
-                <ExplorerLink explorer={testnet.explorer} address={s} label={`${s.slice(0, 10)}…${s.slice(-6)}`} />
+                <ExplorerLink explorer={explorer} address={s} label={`${s.slice(0, 10)}…${s.slice(-6)}`} />
                 <span className="text-muted">Slate · key {i + 1}</span>
               </li>
             ))}
@@ -148,7 +185,7 @@ export function SignersPanel({ testnet, docsUrl }: { testnet: Testnet; docsUrl: 
           <span className="text-xs tracking-[0.04em] text-muted uppercase">Control</span>
           <div className="flex justify-between gap-3 border-b border-border py-1.5">
             <span className="text-muted">SignedSource owner</span>
-            <span>{owner ? <ExplorerLink explorer={testnet.explorer} address={owner} label={label(owner)} /> : "—"}</span>
+            <span>{owner ? <ExplorerLink explorer={explorer} address={owner} label={label(owner)} /> : "—"}</span>
           </div>
           <div className="flex justify-between gap-3 border-b border-border py-1.5">
             <span className="text-muted">Timelock delay</span>
@@ -188,7 +225,7 @@ export function SignersPanel({ testnet, docsUrl }: { testnet: Testnet; docsUrl: 
                       ? `Ready since ${when(Number(at))}; anyone with the executor role can run it.`
                       : `Executable ${when(Number(at))}, in ${countdown(Number(at) - now)}. Scheduled in `}
                 {!done && !ready && at !== undefined && (
-                  <a href={`${testnet.explorer}/tx/${o.tx}`} target="_blank" rel="noreferrer" className="font-mono text-accent-text underline-offset-2 hover:underline">
+                  <a href={`${explorer}/tx/${o.tx}`} target="_blank" rel="noreferrer" className="font-mono text-accent-text underline-offset-2 hover:underline">
                     {o.tx.slice(0, 10)}…
                   </a>
                 )}

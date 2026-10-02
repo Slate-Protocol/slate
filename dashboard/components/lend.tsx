@@ -9,6 +9,31 @@ import { ExplorerLink, POLL, TESTNET, TxMessage, button, num, reads, usd, useTx 
 import { LabTag, card } from "./sections";
 
 type Testnet = DashboardData["testnet"];
+type Mainnet = DashboardData["mainnet"];
+
+const CRWD: Address = "0xea72Ecca2d0f6bFA1394DBBCff85b52CD4233931";
+
+/** The mainnet lender, read-only: what one CRWD token would borrow today, priced by CRWD's SlateFeed. */
+function MainnetLender({ lender }: { lender: Address }) {
+  const { data } = useReadContracts({
+    contracts: reads([{ address: lender, abi: lenderAbi, functionName: "quote", args: [CRWD, 10n ** 18n], chainId: 4663 }]),
+    query: POLL,
+  });
+  const q = data?.[0]?.result as QuoteRead | undefined;
+  return (
+    <p className="rounded-lg border border-border px-3 py-2.5 text-sm">
+      <span className="font-semibold">On Robinhood Chain mainnet.</span>{" "}
+      <ExplorerLink explorer="https://robinhoodchain.blockscout.com" address={lender} /> lends Paxos USDG against CRWD, a token
+      with no Chainlink feed.{" "}
+      {q?.[0]
+        ? `Through CRWD's SlateFeed it values one token at ${usd(Number(formatUnits(q[1], 6)))} and would lend up to ${num(q[2], 6, 2)} USDG against it (40%).`
+        : q
+          ? "CRWD's feed is not serving a price right now, so it would lend nothing."
+          : ""}{" "}
+      <span className="text-muted">No USDG is supplied yet: read-only.</span>
+    </p>
+  );
+}
 type Mode = "deposit" | "borrow" | "repay" | "withdraw";
 type Position = readonly [boolean, bigint, bigint, bigint, bigint];
 type PriceRead = readonly [boolean, bigint, bigint];
@@ -25,7 +50,7 @@ function Lending({ ok }: { ok: boolean | undefined }) {
   );
 }
 
-export function LendPanel({ testnet }: { testnet: Testnet }) {
+export function LendPanel({ testnet, mainnet }: { testnet: Testnet; mainnet: Mainnet }) {
   const c = testnet.contracts;
   const lender = c.StockLender as Address | undefined;
   const naiveLender = c[NAIVE] as Address | undefined;
@@ -226,6 +251,8 @@ export function LendPanel({ testnet }: { testnet: Testnet }) {
           ))}
         </ul>
       </div>
+
+      {mainnet.contracts.StockLender && <MainnetLender lender={mainnet.contracts.StockLender as Address} />}
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-4">
         <div className="flex flex-col gap-3">
