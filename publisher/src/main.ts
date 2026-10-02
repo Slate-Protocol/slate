@@ -26,6 +26,7 @@ import {
   robinhoodMainnet,
   settings,
   SIGNED_SYMBOLS,
+  SYMBOL_CADENCE,
   type Keys,
   type Network,
 } from "./config.ts";
@@ -167,7 +168,7 @@ async function publish(ctx: Ctx, symbol: string, quotes: Map<string, Promise<Quo
       return;
     }
     const moved = last.price > 0n ? ((q.mid > last.price ? q.mid - last.price : last.price - q.mid) * 10_000n) / last.price : 10_000n;
-    const cadence = CADENCE[ctx.net.chain.id] ?? CADENCE[46630];
+    const cadence = SYMBOL_CADENCE[ctx.net.chain.id]?.[symbol] ?? CADENCE[ctx.net.chain.id] ?? CADENCE[46630];
     if (moved < BigInt(cadence.deviationBps) && now - lastAt < cadence.heartbeat) {
       s.skipped = `within ${cadence.deviationBps} bps and ${cadence.heartbeat} s heartbeat`;
       return;

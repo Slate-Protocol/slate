@@ -39,3 +39,7 @@ next-env.d.ts
 # vercel link
 .vercel
 .env*
+
+# gas rehearsals on a local fork
+deployments/.rehearsal-*
+contracts/broadcast/*/31337/

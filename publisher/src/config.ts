@@ -66,6 +66,14 @@ export const CADENCE: Record<number, { deviationBps: number; heartbeat: number }
   4663: { deviationBps: 50, heartbeat: 1800 },
 };
 
+/**
+ * Per-symbol overrides. The 19 feedless mainnet feeds beyond CRWD sign on a 1% move or every 4 hours (their feeds
+ * accept prices up to 4 h 15 min old): twenty feeds at CRWD's cadence would cost about 0.003 ETH a trading day.
+ */
+export const SYMBOL_CADENCE: Record<number, Record<string, { deviationBps: number; heartbeat: number }>> = {
+  4663: Object.fromEntries(MAINNET_SYMBOLS.filter((s) => s !== "CRWD").map((s) => [s, { deviationBps: 100, heartbeat: 4 * 3600 }])),
+};
+
 export const settings = {
   /** Seconds between cycles. */
   interval: Number(process.env.PUBLISH_INTERVAL ?? 15),

@@ -9,6 +9,7 @@ import {SlateFeedFactory} from "../src/feeds/SlateFeedFactory.sol";
 import {SlateNavFeed} from "../src/feeds/SlateNavFeed.sol";
 import {SlateQuotedFeed} from "../src/feeds/SlateQuotedFeed.sol";
 import {AggregatorV3Interface} from "../src/interfaces/AggregatorV3Interface.sol";
+import {IERC8056} from "../src/interfaces/IERC8056.sol";
 import {IMarketCalendar, Session} from "../src/interfaces/IMarketCalendar.sol";
 import {IPriceSource, PriceKind} from "../src/interfaces/IPriceSource.sol";
 import {IReportVerifier} from "../src/interfaces/IReportVerifier.sol";
@@ -69,6 +70,51 @@ contract Deploy is Script {
         0x71178BAc73cBeb415514eB542a8995b82669778d,
         0x1FBE1a0e43594b3455993B5dE5Fd0A7A266298d0,
         0x3b8262A63d25f0477c4DDE23F83cfe22Cb768C93
+    ];
+
+    /// @dev Mainnet stock tokens with no Chainlink feed, beyond CRWD: CCL (multiplier 1.0215, the other non-1 one) and a
+    ///      spread of liquid, recognisable names. The publisher's MAINNET_SYMBOLS lists the same, with CRWD.
+    string[19] internal FEEDLESS_SYMBOLS = [
+        "NFLX",
+        "AVGO",
+        "LLY",
+        "COST",
+        "BA",
+        "JNJ",
+        "IBM",
+        "PFE",
+        "F",
+        "RIVN",
+        "SNAP",
+        "RBLX",
+        "RDDT",
+        "HIMS",
+        "SHOP",
+        "LMT",
+        "GLD",
+        "AMC",
+        "CCL"
+    ];
+    address[19] internal FEEDLESS_TOKENS = [
+        0xE0444EF8BF4eD74f74FD73686e2ddF4C1c5591E8,
+        0x156E175DD063a8cE274C50654eF40e0032b3fbcF,
+        0x8005d266423c7ea827372c9c864491e5786600ea,
+        0x4EA005168D7F09a7A0Ba9D1DEf21a479950E44C2,
+        0x4D21483a44Bf67a86b77E3dA301411880797D452,
+        0x03DfbBE0AC4E7bCDaFd08eD41A400326B77D8c80,
+        0x980dcf6766FA79f5Cf0c4AAdb3ab477ff15a9619,
+        0x7066A64c24e4206CD62E83bf198c1E7EB361F51e,
+        0x25C288E6D899b9BC30160965aD9644c67e73bE0C,
+        0xB1BF26c1D20ff267A4f93550d1E0d06ac40a114B,
+        0xF6589F11Bc40b669e584073F428B05562F568733,
+        0xF0C4BF4C582cb3836e98394b1d4e7B7281101bE8,
+        0x05b37Fb53A299a1b874A619e1c4C404D52C36F4C,
+        0xCceE82fE024c36fA15E1005edE3E9e4787e23D09,
+        0xF53F66751B1Eff985311b693531E3290F600c410,
+        0x329fcACEb9AD6F9580DD5F643fed0646900D043c,
+        0xC9a981FEE1F9DEc688bb123ccDeCc63D0deBFC4e,
+        0x05a3d1Cd21d0C88145E82600E62e7E496e0F222B,
+        0x9651342CeA770aE9a2969Ba2A52611523146aef9
     ];
 
     address internal deployer;
@@ -288,6 +334,27 @@ contract Deploy is Script {
     // Arbitrum One: Corporate Action Lab over Chainlink's raw TSLA feed
     // ------------------------------------------------------------------------------------------------
 
+    /// @notice Signed feeds for the feedless tokens above, through the factory and SignedSource that `mainnet()` deployed.
+    ///         Run straight after it: `mainnet()` then `mainnetFeedless()`. The publisher signs these on a 1% move or every
+    ///         4 hours (CRWD: 0.5% or 30 minutes), so they accept prices up to 4 h 15 min old.
+    function mainnetFeedless() external {
+        require(block.chainid == 4663, "not RH mainnet");
+        string memory json = vm.readFile(_outPath());
+        _load(json);
+        SlateFeedFactory factory = SlateFeedFactory(vm.parseJsonAddress(json, ".contracts['SlateFeedFactory']"));
+        SignedSource source = SignedSource(vm.parseJsonAddress(json, ".contracts['SignedSource']"));
+        USMarketCalendar calendar = USMarketCalendar(vm.parseJsonAddress(json, ".contracts['USMarketCalendar']"));
+        require(address(source) == PRESIGNED_SIGNED_SOURCE, "ABORT: not the presigned SignedSource");
+        _begin();
+        for (uint256 i; i < FEEDLESS_SYMBOLS.length; ++i) {
+            require(IERC8056(FEEDLESS_TOKENS[i]).uiMultiplier() > 0, "not an ERC-8056 token");
+            SlateFeed feed =
+                _signedFeed(factory, source, calendar, FEEDLESS_TOKENS[i], FEEDLESS_SYMBOLS[i], 255 minutes);
+            _feed(FEEDLESS_SYMBOLS[i], FEEDLESS_TOKENS[i], address(feed));
+        }
+        _end();
+    }
+
     function arbitrum() external {
         require(block.chainid == 42_161, "not Arbitrum One");
         _begin();
@@ -487,6 +554,8 @@ contract Deploy is Script {
     }
 
     function _outPath() internal view returns (string memory) {
-        return string.concat(vm.projectRoot(), "/../deployments/", vm.toString(block.chainid), ".json");
+        string memory standard =
+            string.concat(vm.projectRoot(), "/../deployments/", vm.toString(block.chainid), ".json");
+        return vm.envOr("DEPLOYMENTS_FILE", standard); // a rehearsal on a fork writes elsewhere
     }
 }
