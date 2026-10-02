@@ -27,6 +27,7 @@ import {
   testDollarAbi,
 } from "@/lib/abi";
 import type { DashboardData } from "@/lib/data";
+import { useCashLiquidity, type Liquidity } from "@/lib/liquidity";
 import { FEED_STATUS, type FeedStatusLabel } from "@/lib/status";
 import { LabTag, Pill, card } from "./sections";
 
@@ -273,6 +274,16 @@ export function CreatePanel({ testnet }: { testnet: Testnet }) {
   const tx = useTx(() => refetch());
   const now = useNow();
   const n = testnet.constituents.length;
+  const liquidity = useCashLiquidity({
+    router: c.SlateRouter,
+    cash: c.SlateTestDollar,
+    venue: c.UniswapV4Venue,
+    route: V4_ROUTE,
+    legs: n,
+    symbols: testnet.constituents.map((x) => x.symbol),
+    shares: valid ? shares : 0n,
+    chainId: TESTNET,
+  }).data;
   const fair = (data?.[0]?.result as readonly [bigint, readonly bigint[]] | undefined)?.[0];
   const cashBalance = data?.[1]?.result as bigint | undefined;
   const cashAllowance = data?.[2]?.result as bigint | undefined;
@@ -298,6 +309,12 @@ export function CreatePanel({ testnet }: { testnet: Testnet }) {
       action = {
         label: "Approve TESTUSD",
         onClick: () => tx.run("Approve TESTUSD", { address: c.SlateTestDollar, abi: erc20Abi, functionName: "approve", args: [c.SlateRouter, maxUint256] }),
+      };
+    } else if (liquidity && liquidity.kind !== "ok") {
+      action = {
+        label: liquidity.kind === "refused" && liquidity.oneShareOk ? "Too large for testnet liquidity" : "Cash create unavailable on testnet",
+        onClick: () => {},
+        disabled: true,
       };
     } else {
       action = {
@@ -394,6 +411,7 @@ export function CreatePanel({ testnet }: { testnet: Testnet }) {
           <span className="text-[13px] text-muted">
             TESTUSD (Slate Test Dollar): testnet stand-in for Paxos USDG. Not USDG. On mainnet the router takes USDG.
           </span>
+          {valid && <LiquidityNote liquidity={liquidity} shares={input} />}
         </div>
       )}
       {(mode === "kind" || mode === "redeem") && (
@@ -412,7 +430,12 @@ export function CreatePanel({ testnet }: { testnet: Testnet }) {
               </div>
             );
           })}
-          {mode === "kind" && <span className="text-[13px] text-muted">Robinhood&apos;s testnet faucet hands out the five stock tokens.</span>}
+          {mode === "kind" && (
+            <span className="text-[13px] text-muted">
+              In kind uses no pools, so it works whatever the testnet liquidity. Robinhood&apos;s testnet faucet hands out the five
+              stock tokens.
+            </span>
+          )}
         </div>
       )}
 
@@ -448,6 +471,42 @@ export function CreatePanel({ testnet }: { testnet: Testnet }) {
       )}
       <TxMessage message={tx.message} explorer={testnet.explorer} />
     </section>
+  );
+}
+
+/** What the testnet pools can serve right now, from a simulated create; never blames the protocol for thin seed liquidity. */
+function LiquidityNote({ liquidity, shares }: { liquidity: Liquidity | undefined; shares: string }) {
+  if (!liquidity) return <span className="text-[13px] text-muted">Checking testnet pool liquidity…</span>;
+  if (liquidity.kind === "ok") {
+    return (
+      <span className="text-[13px] text-muted">
+        Testnet pools can fill {shares} {shares === "1" ? "share" : "shares"} right now, every leg within 3% of its Slate price
+        (simulated).
+      </span>
+    );
+  }
+  const inKind = "In-kind create and redeem use no pools and still work.";
+  let title: string;
+  let body: string;
+  if (liquidity.kind === "refused") {
+    title = liquidity.oneShareOk ? `Testnet liquidity can't fill ${shares} shares with cash` : "Testnet liquidity exhausted for cash creates";
+    body = `Route refused on leg ${liquidity.leg} (${liquidity.symbol}): the seeded TESTUSD/${liquidity.symbol} pool would fill at ${usd(
+      liquidity.effective,
+    )} a share, more than 3% from Slate's ${usd(liquidity.feed)}. That is the safety band working; the cause is this testnet's thin seed liquidity, not a fault in Slate. ${
+      liquidity.oneShareOk ? "Fewer shares still fill. " : ""
+    }${inKind}`;
+  } else if (liquidity.kind === "feed") {
+    title = "Cash creates paused";
+    body = `A constituent's feed is ${liquidity.status}, and the router won't price through it. ${inKind}`;
+  } else {
+    title = "Testnet liquidity can't fill this size";
+    body = `The seeded testnet pools can't serve this creation right now (${liquidity.detail}). ${inKind}`;
+  }
+  return (
+    <div role="status" className="mt-1 flex flex-col gap-1 rounded-lg border border-border bg-surface-2 px-3 py-2.5">
+      <span className="font-semibold">{title}</span>
+      <span className="text-[13px] text-muted">{body}</span>
+    </div>
   );
 }
 

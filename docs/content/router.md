@@ -46,3 +46,7 @@ cd contracts && SLATE_FORK=1 forge test --match-test test_thirdPartyV3Pool_isRef
 The router never trusts a venue's return value: cash spent and tokens received are measured by balance. Leftover cash is refunded, and the router holds nothing between calls (fuzz-tested).
 
 **Testnet pools have no arbitrageurs.** Left alone, a pool keeps its seed price while the market moves, and the router would (rightly) refuse it. Slate's publisher recenters the testnet pools to the Slate price through `SlateV4Seeder.recenter`. It acts as the missing arbitrageur, and it is labelled as testnet-only.
+
+**Testnet liquidity is thin, on purpose and by necessity.** The five TESTUSD/stock pools were seeded with a few tokens each from Robinhood's testnet faucet. Every cash creation buys stock out of them, and recentering needs stock to sell back in, so larger creations hit the 3% band through price impact alone. On 2 October one share filled within the band, while five shares were refused on the NFLX leg ($71.58 against Slate's $67.91).
+
+The dashboard simulates the creation before you sign. When the pools can't serve a size, it says so as testnet liquidity ("Route refused on leg 5 (NFLX)…"), not as an error, and disables cash creation at that size. **In-kind create and redeem use no pools and keep working.** On mainnet, cash creation routes through the real stock/USDG pools, which have their own depth and arbitrage.

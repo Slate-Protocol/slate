@@ -41,6 +41,8 @@ Every contract is verified on the [explorer](https://explorer.testnet.chain.robi
 | Lab: LabSplitSource | `0xC4aC0Ec0CaA53d0441CFF72d3a66f577825647BB` |
 | Lab: NaiveMultiplierFeed | `0xb10c89Fe4ad141EB4ad74761958EB99572354ed6` |
 
+**Testnet limits.** Prices are signed 24/5 while the US session is open. Cash creation goes through five thinly seeded TESTUSD pools, so larger sizes can be refused on price impact; in-kind create and redeem always work. See [Router and the refused route](/router).
+
 Stylus benchmark contracts: SlateVerifier (Rust) `0x0819e35fd1ccccabb15a100dbb8315f04f1f093b`, Solidity reference `0x1015EddD8776275446E23469c16F85E1ec6b5131`.
 
 ## Robinhood Chain mainnet (4663): not deployed yet
