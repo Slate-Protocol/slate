@@ -56,10 +56,8 @@ export function LendPanel({ testnet }: { testnet: Testnet }) {
     ]),
     query: { ...POLL, enabled: !!lender },
   });
-  const tx = useTx(() => {
-    setInput("");
-    refetch();
-  });
+  // The amount stays after an approval or faucet step, so the next click carries on with it.
+  const tx = useTx(() => refetch());
   if (!lender) return null;
 
   const prices = markets.map((_, i) => data?.[i]?.result as PriceRead | undefined);
