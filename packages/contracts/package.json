@@ -1,0 +1,11 @@
+{
+  "name": "@slate-protocol/contracts",
+  "version": "0.1.0",
+  "description": "Interfaces and a fail-closed reader for Slate: multiplier-correct price feeds for Robinhood stock tokens (ERC-8056).",
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/Slate-Protocol/slate.git", "directory": "packages/contracts" },
+  "homepage": "https://docs.slate.0xo.in/integrate",
+  "keywords": ["solidity", "oracle", "chainlink", "erc-8056", "robinhood", "stock-tokens"],
+  "files": ["src/**/*.sol", "abi/*.json", "README.md"],
+  "publishConfig": { "access": "public" }
+}

@@ -28,6 +28,10 @@ jobs:
       - run: forge fmt --check
       - run: forge build --sizes
       - run: forge test -vvv
+      # The published package (packages/contracts) must carry exactly these interfaces and current ABIs.
+      - name: Integration package matches the contracts
+        working-directory: .
+        run: packages/contracts/abi.sh && git diff --exit-code packages/contracts/abi
 
   fork:
     name: contracts (live fork tests)
