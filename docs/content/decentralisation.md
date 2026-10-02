@@ -13,7 +13,7 @@ Slate's only off-chain input is a share price, signed by a committee. Today ever
 | Owner of `SignedSource` | `TimelockController`, 48-hour delay | Replace the signer set and quorum. Nothing else |
 | Proposer, executor and canceller of the timelock | Slate's deployer | Schedule, run or cancel timelock operations |
 | Admin of the timelock | The timelock itself | Role changes go through the same 48-hour delay |
-| Owner of `USMarketCalendar` | Slate's deployer; on testnet, moving under the timelock (executable Sun 4 Oct, 20:05 IST) | Mark future days as holidays or early closes. Days already started in New York cannot be changed |
+| Owner of `USMarketCalendar` | Slate's deployer, moving under the timelock: executable Sun 4 Oct, 20:05 IST on testnet and Mon 5 Oct, 00:40 IST on mainnet | Mark future days as holidays or early closes. Days already started in New York cannot be changed |
 | `SlateFeed`, `SlateBasket`, `SlateNavFeed`, `SlateRouter` | No owner | Nothing: every parameter is set at deployment |
 
 Fixed for good in `SignedSource`, whoever owns it: signers must agree within 0.5%; a move over 10% needs every signer; a report must be newer than the last and at most 60 seconds in the future; a quorum must be a strict majority of the set.
@@ -63,4 +63,4 @@ The pending operation appears on the dashboard, with its countdown, as soon as i
 
 ## Mainnet
 
-Mainnet is deployed with the same structure: `SignedSource` owned by a 48-hour timelock from the first block. Right after deployment, `handOverCalendar()` puts the market calendar under the timelock too.
+Mainnet has the same structure: `SignedSource` has been owned by its 48-hour timelock since the block it was deployed in. Right after deployment, `handOverCalendar()` began moving the mainnet market calendar under the same timelock; the timelock's acceptance is executable on Mon 5 Oct at 00:40 IST. The dashboard's panel shows both networks.

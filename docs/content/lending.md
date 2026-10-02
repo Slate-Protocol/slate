@@ -47,7 +47,7 @@ The naive-fed lender is left with a loan worth twice its collateral, and liquida
 
 ## On mainnet
 
-`StockLender` is chain-agnostic. On Robinhood Chain mainnet it takes Paxos USDG as the loan asset and lists CRWD on its SlateFeed. CRWD has no Chainlink feed, so no lender can price it today without Slate. A fork test borrows real USDG against the real CRWD token:
+`StockLender` is live on Robinhood Chain mainnet at [`0x66770067Bf690a8eAcA95aCAB896659835704F52`](https://robinhoodchain.blockscout.com/address/0x66770067Bf690a8eAcA95aCAB896659835704F52). It takes Paxos USDG as the loan asset and lists CRWD on its SlateFeed: 40% loan-to-value, liquidation at 60%. CRWD has no Chainlink feed, so no other lender can price it. At deployment, `quote(CRWD, 1 token)` valued one CRWD at $1,072.42, with up to 428.97 USDG borrowable. No USDG is supplied yet, so it is read-only: the CRWD/USDG pool on mainnet is empty, so no CRWD can be bought on-chain to post. A fork test borrows real USDG against the real CRWD token:
 
 ```bash
 cd contracts && python3 script/rpc_relay.py https://rpc.mainnet.chain.robinhood.com 8548 &

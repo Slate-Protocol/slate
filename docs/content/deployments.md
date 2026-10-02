@@ -47,9 +47,50 @@ Every contract is verified on the [explorer](https://explorer.testnet.chain.robi
 
 Stylus benchmark contracts: SlateVerifier (Rust) `0x0819e35fd1ccccabb15a100dbb8315f04f1f093b`, Solidity reference `0x1015EddD8776275446E23469c16F85E1ec6b5131`.
 
-## Robinhood Chain mainnet (4663): not deployed yet
+## Robinhood Chain mainnet (4663): live
 
-Read-only SlateFeeds are scripted and dry-run: CRWD over signed prices, AAPL over Chainlink's total-return feed, and both re-quoted in USDG. They are not deployed yet. Until they are, nothing Slate publishes claims a live mainnet feed. The CRWD figures in these docs come from fork tests against the live token.
+Deployed on 3 Oct 2026, during Friday's US session. Every contract is verified on Sourcify, and the explorer shows the source. Twenty SlateFeeds price stock tokens that have no Chainlink feed: CRWD and the nineteen below. Prices are signed 24/5 by the same three keys and relayed by the publisher: CRWD on a 0.5% move or every 30 minutes, the others on a 1% move or every 4 hours.
+
+Both networks were deployed by the same address, so the same address can belong to different contracts on each chain (`0x8B27…A507` is the SignedSource on testnet and the CRWD/USDG feed on mainnet). Always read an address with its chain.
+
+**CRWD's first mainnet price**, signed Fri 2 Oct 15:04:50 EDT: a share price of $268.105, times the token's multiplier of 4.000, is $1,072.42 ([submit transaction](https://robinhoodchain.blockscout.com/tx/0x0d8a2bde33c69e0ae8f931314a6ebe3dcebf29a1860c268d0ffdb3e30e9cccda)).
+
+| Contract | Address |
+|---|---|
+| SignedSource (3 signers, 2 needed; owned by the timelock) | [`0xf0b57272f1D69083019E8953B82bC128002D7526`](https://robinhoodchain.blockscout.com/address/0xf0b57272f1D69083019E8953B82bC128002D7526) |
+| TimelockController (48 h) | [`0x1015EddD8776275446E23469c16F85E1ec6b5131`](https://robinhoodchain.blockscout.com/address/0x1015EddD8776275446E23469c16F85E1ec6b5131) |
+| USMarketCalendar (moving under the timelock: executable Mon 5 Oct, 00:40 IST) | [`0x0819E35fd1cCcCabB15A100DBB8315f04f1f093b`](https://robinhoodchain.blockscout.com/address/0x0819E35fd1cCcCabB15A100DBB8315f04f1f093b) |
+| SolidityReportVerifier | [`0x2E13A83f73df7b721fe020a1e11aD3c004653dC7`](https://robinhoodchain.blockscout.com/address/0x2E13A83f73df7b721fe020a1e11aD3c004653dC7) |
+| SlateFeedFactory | [`0xd921ad145FA22b0C8A4846d234857FBEFFDfDdc6`](https://robinhoodchain.blockscout.com/address/0xd921ad145FA22b0C8A4846d234857FBEFFDfDdc6) |
+| SlateQuotedFeed CRWD/USDG | [`0x8B27311a3493a85E063f97e4bB59cf3a22aEA507`](https://robinhoodchain.blockscout.com/address/0x8B27311a3493a85E063f97e4bB59cf3a22aEA507) |
+| SlateQuotedFeed AAPL/USDG | [`0xe6943e58E3C3e8a29502430237bfC80bB6099c45`](https://robinhoodchain.blockscout.com/address/0xe6943e58E3C3e8a29502430237bfC80bB6099c45) |
+| StockLender (USDG loans against CRWD; read-only, nothing supplied) | [`0x66770067Bf690a8eAcA95aCAB896659835704F52`](https://robinhoodchain.blockscout.com/address/0x66770067Bf690a8eAcA95aCAB896659835704F52) |
+| SlateFeed CRWD (multiplier 4.000) | [`0x84Ad4c99b6AB003b97943E9c48aF73ba20B5Cc77`](https://robinhoodchain.blockscout.com/address/0x84Ad4c99b6AB003b97943E9c48aF73ba20B5Cc77) |
+| SlateFeed AAPL (over Chainlink's total-return feed) | [`0x0c098235d4069Ad82c9EcaeF8264835C5A0dBc7D`](https://robinhoodchain.blockscout.com/address/0x0c098235d4069Ad82c9EcaeF8264835C5A0dBc7D) |
+
+The nineteen other feedless tokens:
+
+| Token | SlateFeed |
+|---|---|
+| AMC | [`0xF616AE554088bF3E2D7FF909DbdCf071B203e145`](https://robinhoodchain.blockscout.com/address/0xF616AE554088bF3E2D7FF909DbdCf071B203e145) |
+| AVGO | [`0x1300fB818704c3B57eF8BDcd65DaAba0674C2315`](https://robinhoodchain.blockscout.com/address/0x1300fB818704c3B57eF8BDcd65DaAba0674C2315) |
+| BA | [`0x4462C8B4F70b6438D6f43942aD7fA96A00DE2D93`](https://robinhoodchain.blockscout.com/address/0x4462C8B4F70b6438D6f43942aD7fA96A00DE2D93) |
+| CCL | [`0x7997833BFFd1aEa6528BD28B574714D20618F5C5`](https://robinhoodchain.blockscout.com/address/0x7997833BFFd1aEa6528BD28B574714D20618F5C5) |
+| COST | [`0xa230A338922FFEf19bf1b748Ec52136C26efb711`](https://robinhoodchain.blockscout.com/address/0xa230A338922FFEf19bf1b748Ec52136C26efb711) |
+| F | [`0x8D8607D4ecA3cF912A8677069a493A2676D457Cb`](https://robinhoodchain.blockscout.com/address/0x8D8607D4ecA3cF912A8677069a493A2676D457Cb) |
+| GLD | [`0x1760889FefB8012174D86D2544Ad8fB70431F74a`](https://robinhoodchain.blockscout.com/address/0x1760889FefB8012174D86D2544Ad8fB70431F74a) |
+| HIMS | [`0x3a97b1A070461Da460Fcc8fc686A8342337300Aa`](https://robinhoodchain.blockscout.com/address/0x3a97b1A070461Da460Fcc8fc686A8342337300Aa) |
+| IBM | [`0x7F4F3C3EAC5E4BAD30B7Eb6eFC6EeD5aff97D05a`](https://robinhoodchain.blockscout.com/address/0x7F4F3C3EAC5E4BAD30B7Eb6eFC6EeD5aff97D05a) |
+| JNJ | [`0x7158D75e975bbad1Eebdbe6bb4A280c928De7004`](https://robinhoodchain.blockscout.com/address/0x7158D75e975bbad1Eebdbe6bb4A280c928De7004) |
+| LLY | [`0x90B73cB8C436Ec6fb9244F2a976e9e65D4eA470f`](https://robinhoodchain.blockscout.com/address/0x90B73cB8C436Ec6fb9244F2a976e9e65D4eA470f) |
+| LMT | [`0x28863229ee45Aa142E3C4b81cfD5C9ddCC1dB90c`](https://robinhoodchain.blockscout.com/address/0x28863229ee45Aa142E3C4b81cfD5C9ddCC1dB90c) |
+| NFLX | [`0xd002fAaaf58C8b91D0c85D0788922Ed6F777DB9D`](https://robinhoodchain.blockscout.com/address/0xd002fAaaf58C8b91D0c85D0788922Ed6F777DB9D) |
+| PFE | [`0x7371F1F7EddFd80507EDe7dD818379875Bf24867`](https://robinhoodchain.blockscout.com/address/0x7371F1F7EddFd80507EDe7dD818379875Bf24867) |
+| RBLX | [`0x68B91835C5CC4849E7287ad04Fd870F63baa02aF`](https://robinhoodchain.blockscout.com/address/0x68B91835C5CC4849E7287ad04Fd870F63baa02aF) |
+| RDDT | [`0xa722731319dc6dD969c5d4D2fe6B88b1a7aed2FC`](https://robinhoodchain.blockscout.com/address/0xa722731319dc6dD969c5d4D2fe6B88b1a7aed2FC) |
+| RIVN | [`0x5A4871608F461fFb5c79034Dc9b0CC9864A00eaF`](https://robinhoodchain.blockscout.com/address/0x5A4871608F461fFb5c79034Dc9b0CC9864A00eaF) |
+| SHOP | [`0x6C2656A66b6D92Cd69BcC138d23e3dE46D2475e5`](https://robinhoodchain.blockscout.com/address/0x6C2656A66b6D92Cd69BcC138d23e3dE46D2475e5) |
+| SNAP | [`0x7b7031b9AB13af659f17F2eEeB3937C3d62b0003`](https://robinhoodchain.blockscout.com/address/0x7b7031b9AB13af659f17F2eEeB3937C3d62b0003) |
 
 ## Arbitrum One (42161): not deployed yet
 

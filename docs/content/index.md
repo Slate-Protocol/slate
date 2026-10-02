@@ -21,7 +21,7 @@ A signed share price of $264.98 × CRWD's on-chain multiplier of 4.000 = **$1,05
 ## What is live
 
 - **Robinhood Chain testnet:** five SlateFeeds (TSLA, AMZN, AMD, PLTR, NFLX) with prices signed 24/5, the SLATE-5 basket and its NAV feed, the router with oracle-banded Uniswap v4 pools, and the Corporate Action Lab. Every contract is verified. See [Deployments](/deployments).
-- **Robinhood Chain mainnet:** read-only SlateFeeds, CRWD first, are scripted and dry-run. They are not deployed yet; this page will say so until they are.
+- **Robinhood Chain mainnet:** live since 3 Oct 2026. Twenty SlateFeeds price stock tokens that have no Chainlink feed, CRWD first, and a lending market quotes USDG loans against CRWD. See [Deployments](/deployments).
 
 ## Where to go next
 

@@ -12,7 +12,7 @@ On 1 Oct 2026 Robinhood's registry listed 194 stock tokens and Chainlink had fee
 
 CrowdStrike's stock token on Robinhood Chain mainnet (`0xea72Ecca2d0f6bFA1394DBBCff85b52CD4233931`) went through a 4:1 split on 2 July 2026. Its `uiMultiplier()` is now `4e18`: one token is four shares. It has **no Chainlink feed**, so nothing on-chain can price it, and anything that pairs the share price with the raw balance is off by 4×.
 
-Slate's `SlateFeed` takes a signed share price and the token's on-chain multiplier, and returns the token price. In our fork test against the live token, a share price of $264.98 gives **$1,059.92**. That is exactly Robinhood's own `tokenBid` for CRWD at the same moment.
+Slate's `SlateFeed` takes a signed share price and the token's on-chain multiplier, and returns the token price. **CRWD's SlateFeed is live on Robinhood Chain mainnet** ([`0x84Ad4c99b6AB003b97943E9c48aF73ba20B5Cc77`](https://robinhoodchain.blockscout.com/address/0x84Ad4c99b6AB003b97943E9c48aF73ba20B5Cc77)). Its first price, signed Fri 2 Oct 15:04:50 EDT, was a share price of $268.105 times 4.000: **$1,072.42** ([transaction](https://robinhoodchain.blockscout.com/tx/0x0d8a2bde33c69e0ae8f931314a6ebe3dcebf29a1860c268d0ffdb3e30e9cccda)). In the earlier fork test against the same token, a share price of $264.98 gave $1,059.92, exactly Robinhood's own `tokenBid` at that moment.
 
 Check every part of that yourself. No keys, no accounts:
 
@@ -46,6 +46,8 @@ SLATE_FORK=1 SLATE_FORK_URL_rh_mainnet=http://127.0.0.1:8548 \
 ```
 
 ## Live now
+
+On **Robinhood Chain mainnet** (chain 4663), since 3 Oct 2026: twenty SlateFeeds for stock tokens with no Chainlink feed (CRWD, NFLX, AVGO, LLY, COST, BA, JNJ, IBM, PFE, F, RIVN, SNAP, RBLX, RDDT, HIMS, SHOP, LMT, GLD, AMC, CCL), AAPL over Chainlink's total-return feed, CRWD and AAPL quoted in USDG, SignedSource `0xf0b57272f1D69083019E8953B82bC128002D7526` owned by a 48-hour timelock, and a StockLender quoting USDG loans against CRWD. All verified on Sourcify. Addresses: [docs: Deployments](https://docs.slate.0xo.in/deployments).
 
 On **Robinhood Chain testnet** (chain 46630), with prices signed 24/5 by three keys and relayed by the publisher on Railway ([status](https://publisher-production-891d.up.railway.app/)). Every contract is verified on the [explorer](https://explorer.testnet.chain.robinhood.com). The full list is in [`deployments/deployments.json`](deployments/deployments.json).
 
