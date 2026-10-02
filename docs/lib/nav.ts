@@ -27,12 +27,14 @@ export const nav: NavGroup[] = [
       { slug: "basket", title: "Basket and NAV feed" },
       { slug: "router", title: "Router and the refused route" },
       { slug: "usdg", title: "USDG integration" },
+      { slug: "lending", title: "Lending against a stock token" },
     ],
   },
   {
     title: "Try it",
     items: [
       { slug: "lab", title: "Corporate Action Lab" },
+      { slug: "accuracy", title: "Slate against Chainlink" },
       { slug: "deployments", title: "Deployments" },
     ],
   },

@@ -57,6 +57,7 @@ On **Robinhood Chain testnet** (chain 46630), with prices signed 24/5 by three k
 | SlateRouter (TESTUSD, 3% band) | `0x3de24B7AEaD51D137c6C6B2c2820587108FA05Bd` |
 | SignedSource (3 signers, 2 needed, 48 h timelock owner) | `0x8B27311a3493a85E063f97e4bB59cf3a22aEA507` |
 | Corporate Action Lab: labTSLA / its SlateFeed | `0xfa84823B70F3147656Be84D0C96eA958efA97AeC` / `0x2B15c4AA73e8D387011e072d046a1B526f987322` |
+| StockLender (a lending market built on Slate feeds) | `0xb25712c148B676941f160C30a9F57B1551118a20` |
 
 ```bash
 # SLATE-5's NAV per share, 8 decimals, through the standard Chainlink interface
@@ -65,6 +66,20 @@ cast call 0x8E2b6C63463DCf51b307811dB41bd60d7987608D "latestRoundData()(uint80,i
 ```
 
 In the Lab, anyone can schedule a split on labTSLA. In our filmed run of a 4:1 split on 2 Oct ([transaction](https://explorer.testnet.chain.robinhood.com/tx/0x93a3ac5e9cd44f230cecc9b80fc661fc6f93e03b1b10efb0261256e527cac631)), the naive feed read **$1,427.82** (4 × TSLA's $356.96) the moment the multiplier switched, while SlateFeed reported `CORPORATE_ACTION` and refused. Three minutes later the first post-split print brought the naive feed back to $356.93; SlateFeed held through its five-minute grace and then served **$357.75**, `OK`.
+
+## A loan against a stock token
+
+Slate is for protocols that want to use stock tokens. [`StockLender`](contracts/src/examples/StockLender.sol) is a minimal lending market written the way any third party would write one: it prices collateral through Slate feeds with nothing but `latestRoundData()`, with no Slate code and no special access. When a feed refuses, it stops lending and liquidating; repaying always works.
+
+- **A loan against Robinhood's NFLX token** on testnet: 0.58 NFLX deposited, priced at $67.50 a token through its SlateFeed, 19.57 TESTUSD borrowed ([transaction](https://explorer.testnet.chain.robinhood.com/tx/0xefa1a7ce6287dcefb36d1d35f6a7282845ae3efe343dd26f7499f01464e317a8)).
+- **The same lender on a naive feed**, through a live 4:1 Lab split: at the switch it valued one labTSLA at $1,484.94 and lent 742.47 TESTUSD against a token worth $372.94 ([transaction](https://explorer.testnet.chain.robinhood.com/tx/0xdfeb0d58be87ee32a303c1a7980ea75cc8ca9265958949279a48069c4af8f57a)). The Slate-fed lender paused borrowing until the post-split price landed.
+- **On a fork of mainnet**, the lender borrows real Paxos USDG against the real CRWD token, which has no Chainlink feed: `forge test --match-test test_usdgLoanAgainstRealCrwd`.
+
+Details: [docs: Lending against a stock token](https://docs.slate.0xo.in/lending).
+
+## Slate against Chainlink, live
+
+For the 35 Robinhood stock tokens Chainlink covers on mainnet, [app.slate.0xo.in/accuracy](https://app.slate.0xo.in/accuracy) puts Chainlink's answer beside Slate's signed price, times the on-chain multiplier, with the median and the worst-case gap. Your browser verifies every signature against Slate's on-chain signer set and reads Chainlink and the multipliers from mainnet itself. Agreement where Chainlink exists is the evidence for the tokens where it does not.
 
 ## What Slate is
 

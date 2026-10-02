@@ -40,6 +40,8 @@ Every contract is verified on the [explorer](https://explorer.testnet.chain.robi
 | Lab: SlateFeed labTSLA | `0x2B15c4AA73e8D387011e072d046a1B526f987322` |
 | Lab: LabSplitSource | `0xC4aC0Ec0CaA53d0441CFF72d3a66f577825647BB` |
 | Lab: NaiveMultiplierFeed | `0xb10c89Fe4ad141EB4ad74761958EB99572354ed6` |
+| StockLender (lending on Slate feeds, TESTUSD loans) | `0xb25712c148B676941f160C30a9F57B1551118a20` |
+| StockLender on the naive labTSLA feed, LAB ONLY | `0x231D8706419162E3CD79fE2DFD2aa2152536CCF3` |
 
 **Testnet limits.** Prices are signed 24/5 while the US session is open. Cash creation goes through five thinly seeded TESTUSD pools, so larger sizes can be refused on price impact; in-kind create and redeem always work. See [Router and the refused route](/router).
 
