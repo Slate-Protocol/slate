@@ -29,10 +29,12 @@ import {
   type Keys,
   type Network,
 } from "./config.ts";
+import { board, updateBoard } from "./board.ts";
 import { buildReport, feedId } from "./report.ts";
 import { fetchQuote, quoteProblems, type Quote } from "./robinhood.ts";
 
 const EXTENDED_SESSION = 1;
+let boardBusy = false;
 const ONE = 10n ** 18n;
 
 type FeedState = {
@@ -372,6 +374,23 @@ async function cycle(keys: Keys) {
   // Until mainnet's SignedSource exists, sign CRWD for it while the market is open (testnet's calendar says so).
   const mainnetDeployed = nets.some((n) => n.chain.id === PRESIGN.chainId);
   if (!mainnetDeployed && state.marketOpen[46630]) await presign(keys, quotes, now);
+  // The accuracy board, about once a minute, off the critical path: signed, never submitted. See board.ts.
+  if (state.cycles % 4 === 0 && !boardBusy) {
+    boardBusy = true;
+    updateBoard({
+      signers: keys.signers,
+      now,
+      marketOpen: !!state.marketOpen[46630],
+      mainnet: mainnetClient as PublicClient,
+      quote: (symbol) => {
+        if (!quotes.has(symbol)) quotes.set(symbol, fetchQuote(symbol));
+        return quotes.get(symbol)!;
+      },
+      multiplierProblem,
+    })
+      .catch((e) => log("board update failed", { error: reason(e) }))
+      .finally(() => (boardBusy = false));
+  }
 
   state.cycles++;
   state.lastCycleAt = new Date().toISOString();
@@ -392,7 +411,7 @@ async function main() {
       "content-type": "application/json",
       "access-control-allow-origin": "*",
     });
-    res.end(JSON.stringify(state, null, 2));
+    res.end(JSON.stringify(req.url?.startsWith("/board") ? board : state, null, 2));
   }).listen(settings.port, () => log("status server", { port: settings.port }));
 
   for (;;) {
