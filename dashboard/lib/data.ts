@@ -129,9 +129,17 @@ export async function getDashboardData(): Promise<DashboardData> {
   const dep = await deployments();
   const feedOf = (ticker: string, chainId: number) => dep.feeds.find((f) => f.symbol === ticker && f.chainId === chainId);
 
+  // Every other signed mainnet feed in deployments.json, after CRWD and AAPL (CRWD stays first: the hero reads it).
+  const listed = new Set(TOKENS.map((t) => `${t.chainId}:${t.ticker}`));
+  const extra: Token[] = dep.feeds
+    .filter((f) => f.chainId === 4663 && !listed.has(`4663:${f.symbol}`))
+    .sort((a, b) => a.symbol.localeCompare(b.symbol))
+    .map((f) => ({ ticker: f.symbol, chainId: 4663, token: f.token, source: "Signed · 2 of 3" }));
+  const tokens = [...TOKENS.slice(0, 2), ...extra, ...TOKENS.slice(2)];
+
   const rows = (
     await Promise.all(
-      TOKENS.map(async (t): Promise<FeedRow | null> => {
+      tokens.map(async (t): Promise<FeedRow | null> => {
         const feed = feedOf(t.ticker, t.chainId);
         if (t.optional && !feed) return null;
         const token = t.token ?? (t.nav ? undefined : feed?.token);

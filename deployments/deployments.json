@@ -3,7 +3,16 @@
     "4663": {
       "name": "Robinhood Chain",
       "explorer": "https://robinhoodchain.blockscout.com",
-      "contracts": {}
+      "contracts": {
+        "USMarketCalendar": "0x0819E35fd1cCcCabB15A100DBB8315f04f1f093b",
+        "SolidityReportVerifier": "0x2E13A83f73df7b721fe020a1e11aD3c004653dC7",
+        "TimelockController": "0x1015EddD8776275446E23469c16F85E1ec6b5131",
+        "SignedSource": "0xf0b57272f1D69083019E8953B82bC128002D7526",
+        "SlateFeedFactory": "0xd921ad145FA22b0C8A4846d234857FBEFFDfDdc6",
+        "SlateQuotedFeed CRWD/USDG": "0x8B27311a3493a85E063f97e4bB59cf3a22aEA507",
+        "SlateQuotedFeed AAPL/USDG": "0xe6943e58E3C3e8a29502430237bfC80bB6099c45",
+        "StockLender": "0x66770067Bf690a8eAcA95aCAB896659835704F52"
+      }
     },
     "46630": {
       "name": "Robinhood Chain testnet",
@@ -34,6 +43,132 @@
     }
   },
   "feeds": [
+    {
+      "symbol": "AAPL",
+      "chainId": 4663,
+      "token": "0xaF3D76f1834A1d425780943C99Ea8A608f8a93f9",
+      "feed": "0x0c098235d4069Ad82c9EcaeF8264835C5A0dBc7D"
+    },
+    {
+      "symbol": "AMC",
+      "chainId": 4663,
+      "token": "0x05a3d1Cd21d0C88145E82600E62e7E496e0F222B",
+      "feed": "0xF616AE554088bF3E2D7FF909DbdCf071B203e145"
+    },
+    {
+      "symbol": "AVGO",
+      "chainId": 4663,
+      "token": "0x156E175DD063a8cE274C50654eF40e0032b3fbcF",
+      "feed": "0x1300fB818704c3B57eF8BDcd65DaAba0674C2315"
+    },
+    {
+      "symbol": "BA",
+      "chainId": 4663,
+      "token": "0x4D21483a44Bf67a86b77E3dA301411880797D452",
+      "feed": "0x4462C8B4F70b6438D6f43942aD7fA96A00DE2D93"
+    },
+    {
+      "symbol": "CCL",
+      "chainId": 4663,
+      "token": "0x9651342CeA770aE9a2969Ba2A52611523146aef9",
+      "feed": "0x7997833BFFd1aEa6528BD28B574714D20618F5C5"
+    },
+    {
+      "symbol": "COST",
+      "chainId": 4663,
+      "token": "0x4EA005168D7F09a7A0Ba9D1DEf21a479950E44C2",
+      "feed": "0xa230A338922FFEf19bf1b748Ec52136C26efb711"
+    },
+    {
+      "symbol": "CRWD",
+      "chainId": 4663,
+      "token": "0xea72Ecca2d0f6bFA1394DBBCff85b52CD4233931",
+      "feed": "0x84Ad4c99b6AB003b97943E9c48aF73ba20B5Cc77"
+    },
+    {
+      "symbol": "F",
+      "chainId": 4663,
+      "token": "0x25C288E6D899b9BC30160965aD9644c67e73bE0C",
+      "feed": "0x8D8607D4ecA3cF912A8677069a493A2676D457Cb"
+    },
+    {
+      "symbol": "GLD",
+      "chainId": 4663,
+      "token": "0xC9a981FEE1F9DEc688bb123ccDeCc63D0deBFC4e",
+      "feed": "0x1760889FefB8012174D86D2544Ad8fB70431F74a"
+    },
+    {
+      "symbol": "HIMS",
+      "chainId": 4663,
+      "token": "0xCceE82fE024c36fA15E1005edE3E9e4787e23D09",
+      "feed": "0x3a97b1A070461Da460Fcc8fc686A8342337300Aa"
+    },
+    {
+      "symbol": "IBM",
+      "chainId": 4663,
+      "token": "0x980dcf6766FA79f5Cf0c4AAdb3ab477ff15a9619",
+      "feed": "0x7F4F3C3EAC5E4BAD30B7Eb6eFC6EeD5aff97D05a"
+    },
+    {
+      "symbol": "JNJ",
+      "chainId": 4663,
+      "token": "0x03DfbBE0AC4E7bCDaFd08eD41A400326B77D8c80",
+      "feed": "0x7158D75e975bbad1Eebdbe6bb4A280c928De7004"
+    },
+    {
+      "symbol": "LLY",
+      "chainId": 4663,
+      "token": "0x8005d266423c7ea827372c9c864491e5786600ea",
+      "feed": "0x90B73cB8C436Ec6fb9244F2a976e9e65D4eA470f"
+    },
+    {
+      "symbol": "LMT",
+      "chainId": 4663,
+      "token": "0x329fcACEb9AD6F9580DD5F643fed0646900D043c",
+      "feed": "0x28863229ee45Aa142E3C4b81cfD5C9ddCC1dB90c"
+    },
+    {
+      "symbol": "NFLX",
+      "chainId": 4663,
+      "token": "0xE0444EF8BF4eD74f74FD73686e2ddF4C1c5591E8",
+      "feed": "0xd002fAaaf58C8b91D0c85D0788922Ed6F777DB9D"
+    },
+    {
+      "symbol": "PFE",
+      "chainId": 4663,
+      "token": "0x7066A64c24e4206CD62E83bf198c1E7EB361F51e",
+      "feed": "0x7371F1F7EddFd80507EDe7dD818379875Bf24867"
+    },
+    {
+      "symbol": "RBLX",
+      "chainId": 4663,
+      "token": "0xF0C4BF4C582cb3836e98394b1d4e7B7281101bE8",
+      "feed": "0x68B91835C5CC4849E7287ad04Fd870F63baa02aF"
+    },
+    {
+      "symbol": "RDDT",
+      "chainId": 4663,
+      "token": "0x05b37Fb53A299a1b874A619e1c4C404D52C36F4C",
+      "feed": "0xa722731319dc6dD969c5d4D2fe6B88b1a7aed2FC"
+    },
+    {
+      "symbol": "RIVN",
+      "chainId": 4663,
+      "token": "0xB1BF26c1D20ff267A4f93550d1E0d06ac40a114B",
+      "feed": "0x5A4871608F461fFb5c79034Dc9b0CC9864A00eaF"
+    },
+    {
+      "symbol": "SHOP",
+      "chainId": 4663,
+      "token": "0xF53F66751B1Eff985311b693531E3290F600c410",
+      "feed": "0x6C2656A66b6D92Cd69BcC138d23e3dE46D2475e5"
+    },
+    {
+      "symbol": "SNAP",
+      "chainId": 4663,
+      "token": "0xF6589F11Bc40b669e584073F428B05562F568733",
+      "feed": "0x7b7031b9AB13af659f17F2eEeB3937C3d62b0003"
+    },
     {
       "symbol": "AMD",
       "chainId": 46630,
