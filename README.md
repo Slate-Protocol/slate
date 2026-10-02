@@ -67,6 +67,25 @@ cast call 0x8E2b6C63463DCf51b307811dB41bd60d7987608D "latestRoundData()(uint80,i
 
 In the Lab, anyone can schedule a split on labTSLA. In our filmed run of a 4:1 split on 2 Oct ([transaction](https://explorer.testnet.chain.robinhood.com/tx/0x93a3ac5e9cd44f230cecc9b80fc661fc6f93e03b1b10efb0261256e527cac631)), the naive feed read **$1,427.82** (4 × TSLA's $356.96) the moment the multiplier switched, while SlateFeed reported `CORPORATE_ACTION` and refused. Three minutes later the first post-split print brought the naive feed back to $356.93; SlateFeed held through its five-minute grace and then served **$357.75**, `OK`.
 
+## Integrate in five lines
+
+Every Slate feed is a Chainlink `AggregatorV3Interface`. [`@slate-protocol/contracts`](packages/contracts) adds the interfaces and `SlatePrice`, which turns a Slate refusal into `ok = false` so your protocol pauses instead of guessing:
+
+```solidity
+import {AggregatorV3Interface, SlatePrice} from "@slate-protocol/contracts/SlatePrice.sol";
+
+AggregatorV3Interface feed = AggregatorV3Interface(slateFeed);
+(bool ok, uint256 price,,) = SlatePrice.tryRead(feed, 3 days);
+if (!ok) revert("no price: pause, don't guess");
+uint256 usd = SlatePrice.value(amount, 18, price, 8, 6);
+```
+
+- `tryRead` returns `ok = false` when the feed refuses (a split in progress, a stale or paused oracle) or its price is older than your bound. The price has 8 decimals.
+- With no price, stop: pause what needs one. Never fall back to a guess.
+- `value` converts `amount` tokens at `price` into 6-decimal dollars.
+
+Install with `forge install Slate-Protocol/slate` and the remapping `@slate-protocol/contracts/=lib/slate/packages/contracts/src/` (npm publication pending). [Docs: Integrate in five lines](https://docs.slate.0xo.in/integrate).
+
 ## A loan against a stock token
 
 Slate is for protocols that want to use stock tokens. [`StockLender`](contracts/src/examples/StockLender.sol) is a minimal lending market written the way any third party would write one: it prices collateral through Slate feeds with nothing but `latestRoundData()`, with no Slate code and no special access. When a feed refuses, it stops lending and liquidating; repaying always works.

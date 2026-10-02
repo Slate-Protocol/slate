@@ -18,10 +18,11 @@ import {Test} from "forge-std/Test.sol";
 
 /// The five-line integration from the README and the docs, as a contract.
 contract Integrator {
-    function valueOf(address feed, uint256 amount) external view returns (uint256) {
-        (bool ok, uint256 price,,) = SlatePrice.tryRead(AggregatorV3Interface(feed), 3 days); // 8 decimals
-        if (!ok) revert("no price: pause, don't guess"); // Slate refused: a split, a stale or paused oracle
-        uint256 usd = SlatePrice.value(amount, 18, price, 8, 6); // `amount` tokens, in 6-decimal dollars
+    function valueOf(address slateFeed, uint256 amount) external view returns (uint256) {
+        AggregatorV3Interface feed = AggregatorV3Interface(slateFeed);
+        (bool ok, uint256 price,,) = SlatePrice.tryRead(feed, 3 days);
+        if (!ok) revert("no price: pause, don't guess");
+        uint256 usd = SlatePrice.value(amount, 18, price, 8, 6);
         return usd;
     }
 }

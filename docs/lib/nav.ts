@@ -23,6 +23,7 @@ export const nav: NavGroup[] = [
   {
     title: "Building with Slate",
     items: [
+      { slug: "integrate", title: "Integrate in five lines" },
       { slug: "slatefeed", title: "SlateFeed" },
       { slug: "basket", title: "Basket and NAV feed" },
       { slug: "router", title: "Router and the refused route" },

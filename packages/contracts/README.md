@@ -5,10 +5,15 @@ Interfaces and a fail-closed reader for [Slate](https://docs.slate.0xo.in): mult
 ```solidity
 import {AggregatorV3Interface, SlatePrice} from "@slate-protocol/contracts/SlatePrice.sol";
 
-(bool ok, uint256 price,,) = SlatePrice.tryRead(AggregatorV3Interface(feed), 3 days); // 8 decimals
-if (!ok) revert("no price: pause, don't guess");     // Slate refused: a split, a stale or paused oracle
-uint256 usd = SlatePrice.value(amount, 18, price, 8, 6); // `amount` tokens, in 6-decimal dollars
+AggregatorV3Interface feed = AggregatorV3Interface(slateFeed);
+(bool ok, uint256 price,,) = SlatePrice.tryRead(feed, 3 days);
+if (!ok) revert("no price: pause, don't guess");
+uint256 usd = SlatePrice.value(amount, 18, price, 8, 6);
 ```
+
+- `tryRead` returns `ok = false` when the feed refuses (a split in progress, a stale or paused oracle) or its price is older than your bound. The price has 8 decimals.
+- With no price, stop: pause what needs one. Never fall back to a guess.
+- `value` converts `amount` tokens at `price` into 6-decimal dollars.
 
 ## Install
 
@@ -19,7 +24,7 @@ forge install Slate-Protocol/slate
 echo '@slate-protocol/contracts/=lib/slate/packages/contracts/src/' >> remappings.txt
 ```
 
-**npm**: `npm install @slate-protocol/contracts`, then map `@slate-protocol/contracts/=node_modules/@slate-protocol/contracts/src/`.
+**npm** (publication pending): `npm install @slate-protocol/contracts`, then map `@slate-protocol/contracts/=node_modules/@slate-protocol/contracts/src/`.
 
 ## What is in it
 
