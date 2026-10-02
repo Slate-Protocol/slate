@@ -44,6 +44,7 @@ contract Deploy is Script {
     // Robinhood Chain mainnet
     address internal constant CRWD = 0xea72Ecca2d0f6bFA1394DBBCff85b52CD4233931;
     address internal constant AAPL = 0xaF3D76f1834A1d425780943C99Ea8A608f8a93f9;
+    address internal constant USDG = 0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168;
     AggregatorV3Interface internal constant AAPL_USD =
         AggregatorV3Interface(0x6B22A786bAa607d76728168703a39Ea9C99f2cD0);
     AggregatorV3Interface internal constant USDG_USD =
@@ -352,6 +353,33 @@ contract Deploy is Script {
                 _signedFeed(factory, source, calendar, FEEDLESS_TOKENS[i], FEEDLESS_SYMBOLS[i], 255 minutes);
             _feed(FEEDLESS_SYMBOLS[i], FEEDLESS_TOKENS[i], address(feed));
         }
+        _end();
+    }
+
+    /// @notice StockLender on mainnet: USDG loans against CRWD, priced by CRWD's SlateFeed. Read-only by default: anyone
+    ///         can call `quote(CRWD, 1e18)` to see what one CRWD token borrows today. With `LEND_SUPPLY_USDG` and
+    ///         `LEND_COLLATERAL_CRWD` set (6 and 18 decimals) and the deployer holding both, it also supplies, deposits and
+    ///         borrows half of the limit, a real loan against a token no other oracle prices. Run after `mainnet()`.
+    function mainnetLend() external {
+        require(block.chainid == 4663, "not RH mainnet");
+        string memory json = vm.readFile(_outPath());
+        _load(json);
+        address crwdFeed = vm.parseJsonAddress(json, ".feeds['CRWD'].feed");
+        uint256 supplyAmount = vm.envOr("LEND_SUPPLY_USDG", uint256(0));
+        uint256 collateral = vm.envOr("LEND_COLLATERAL_CRWD", uint256(0));
+        _begin();
+        StockLender lender = new StockLender(IERC20(USDG), deployer);
+        lender.listMarket(CRWD, AggregatorV3Interface(crwdFeed), 4000, 6000, 800, 3 days);
+        if (supplyAmount > 0 && collateral > 0) {
+            IERC20(USDG).approve(address(lender), supplyAmount);
+            lender.supply(supplyAmount);
+            IERC20(CRWD).approve(address(lender), collateral);
+            lender.deposit(CRWD, collateral);
+            (bool ok,, uint256 maxBorrow) = lender.quote(CRWD, collateral);
+            require(ok, "CRWD feed not serving a price");
+            lender.borrow(CRWD, maxBorrow / 2);
+        }
+        _contract("StockLender", address(lender));
         _end();
     }
 
