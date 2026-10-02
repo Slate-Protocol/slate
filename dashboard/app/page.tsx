@@ -1,4 +1,5 @@
 import { LendPanel } from "@/components/lend";
+import { SignersPanel } from "@/components/signers";
 import { BasketPanel, CreatePanel, LabPanel, UsdgProof } from "@/components/live";
 import { FeedsTable, Legend, Overview } from "@/components/sections";
 import { Shell } from "@/components/shell";
@@ -20,6 +21,7 @@ export default async function Dashboard() {
       </div>
       <LendPanel testnet={data.testnet} />
       <LabPanel testnet={data.testnet} />
+      <SignersPanel testnet={data.testnet} docsUrl={process.env.NEXT_PUBLIC_DOCS_URL ?? "https://docs.slate.0xo.in"} />
     </Shell>
   );
 }

@@ -11,6 +11,7 @@ const sections = [
   { id: "create", label: "Create & redeem" },
   { id: "lend", label: "Lend" },
   { id: "lab", label: "Lab", lab: true },
+  { id: "signers", label: "Signers" },
 ];
 
 /** Pages beside the dashboard's sections. */
