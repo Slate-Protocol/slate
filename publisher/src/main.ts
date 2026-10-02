@@ -31,6 +31,7 @@ import {
   type Network,
 } from "./config.ts";
 import { board, updateBoard } from "./board.ts";
+import { COSIGNER_URLS, cosign } from "./cosigners.ts";
 import { buildReport, feedId } from "./report.ts";
 import { fetchQuote, quoteProblems, type Quote } from "./robinhood.ts";
 
@@ -174,11 +175,18 @@ async function publish(ctx: Ctx, symbol: string, quotes: Map<string, Promise<Quo
       return;
     }
 
-    const report = await buildReport(ctx.keys.signers, ctx.net.chain.id, ctx.net.contracts.SignedSource, {
-      feedId: id,
-      price: q.mid,
-      observedAt: BigInt(q.observedAt),
-    });
+    // Independent co-signers, if any are configured, add their own signed observations.
+    const co = COSIGNER_URLS.length
+      ? await cosign(COSIGNER_URLS, symbol, ctx.net.chain.id, ctx.net.contracts.SignedSource, q)
+      : { entries: [], dropped: [] };
+    if (co.dropped.length) log("co-signer entries dropped", { key, dropped: co.dropped });
+    const report = await buildReport(
+      ctx.keys.signers,
+      ctx.net.chain.id,
+      ctx.net.contracts.SignedSource,
+      { feedId: id, price: q.mid, observedAt: BigInt(q.observedAt) },
+      co.entries,
+    );
     const { request } = await ctx.pub.simulateContract({
       account: ctx.wallet.account!,
       address: ctx.net.contracts.SignedSource,
