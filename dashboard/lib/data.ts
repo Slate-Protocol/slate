@@ -109,7 +109,7 @@ async function robinhoodQuote(symbol: string) {
   return q ? { tokenBid: Number(q.tokenBid), tokenAsk: Number(q.tokenAsk) } : null;
 }
 
-async function coverage(): Promise<DashboardData["coverage"]> {
+export async function coverage(): Promise<DashboardData["coverage"]> {
   const [assets, feeds] = await Promise.all([
     settle(fetch("https://api.robinhood.com/rhj/assets", { next: { revalidate: 3600 } }).then((r) => r.json())),
     settle(fetch("https://reference-data-directory.vercel.app/feeds-robinhood-mainnet.json", { next: { revalidate: 3600 } }).then((r) => r.json())),
