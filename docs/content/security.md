@@ -25,4 +25,4 @@ Stale prices, paused oracles, prices straddling a multiplier switch, the grace w
 
 ## Tests
 
-The contracts have 121 unit and fuzz tests, plus live fork tests against Robinhood Chain mainnet and testnet and Arbitrum One. CI runs them on every push, the fork job included.
+The contracts have unit and fuzz tests, plus live fork tests against Robinhood Chain mainnet and testnet and Arbitrum One. CI runs them on every push, the fork job included.

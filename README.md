@@ -6,7 +6,7 @@
 
 **Nearly 200 stock tokens on Robinhood Chain. 35 Chainlink feeds. Slate prices the rest.**
 
-On 1 Oct 2026 Robinhood's registry listed 194 stock tokens and Chainlink had feeds for 35 of them. Recount any time: `curl -s https://api.robinhood.com/rhj/assets | jq length`, against `https://reference-data-directory.vercel.app/feeds-robinhood-mainnet.json`.
+On 1 Oct 2026 Robinhood's registry listed 194 stock tokens and Chainlink had feeds for 35 of them. Recount any time: `curl -s https://api.robinhood.com/rhj/assets | jq '.assets | length'`, against `curl -s https://reference-data-directory.vercel.app/feeds-robinhood-mainnet.json | jq '[.[] | select(.name | startswith("Robinhood"))] | length'`.
 
 ## CRWD, the case in one token
 
@@ -64,7 +64,7 @@ cast call 0x8E2b6C63463DCf51b307811dB41bd60d7987608D "latestRoundData()(uint80,i
   --rpc-url https://rpc.testnet.chain.robinhood.com
 ```
 
-In the Lab, anyone can schedule a split on labTSLA. In our live run of a 4:1 split on 1 Oct, the naive feed read **$1,425.84** (4 × TSLA's $356.46) the moment the multiplier switched, while SlateFeed reported `STRADDLE` and refused. Three minutes later the first post-split print brought the naive feed back to $357.28; SlateFeed held `CORPORATE_ACTION` through its five-minute grace and then served **$357.31**, `OK`.
+In the Lab, anyone can schedule a split on labTSLA. In our filmed run of a 4:1 split on 2 Oct ([transaction](https://explorer.testnet.chain.robinhood.com/tx/0x93a3ac5e9cd44f230cecc9b80fc661fc6f93e03b1b10efb0261256e527cac631)), the naive feed read **$1,427.82** (4 × TSLA's $356.96) the moment the multiplier switched, while SlateFeed reported `CORPORATE_ACTION` and refused. Three minutes later the first post-split print brought the naive feed back to $356.93; SlateFeed held through its five-minute grace and then served **$357.75**, `OK`.
 
 ## What Slate is
 

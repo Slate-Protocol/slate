@@ -15,10 +15,11 @@ While building Slate we found two statements in official documentation that the 
 
 ```bash
 # Stock tokens in Robinhood's registry
-curl -s https://api.robinhood.com/rhj/assets | jq length
+curl -s https://api.robinhood.com/rhj/assets | jq '.assets | length'
 
-# Chainlink feeds on Robinhood Chain mainnet (stock feeds are named "Robinhood <SYMBOL> / USD")
-curl -s https://reference-data-directory.vercel.app/feeds-robinhood-mainnet.json | jq '[.[] | .name]'
+# Chainlink stock feeds on Robinhood Chain mainnet (named "Robinhood <SYMBOL> / USD")
+curl -s https://reference-data-directory.vercel.app/feeds-robinhood-mainnet.json \
+  | jq '[.[] | select(.name | startswith("Robinhood"))] | length'
 
 # CRWD has none
 curl -s https://reference-data-directory.vercel.app/feeds-robinhood-mainnet.json \
