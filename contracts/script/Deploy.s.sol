@@ -54,6 +54,7 @@ contract Deploy is Script {
         AggregatorV3Interface(0x3609baAa0a9b1f0FE4d6CC01884585d0e191C3E3);
 
     uint256 internal constant TIMELOCK_DELAY = 48 hours;
+    bytes32 internal constant CALENDAR_SALT = keccak256("slate: calendar under the timelock");
     /// @dev Share price of SLATE-5 at first creation: $10 of each constituent.
     uint256 internal constant USD_PER_CONSTITUENT = 10e8;
     uint256 internal constant FIRST_CREATION = 5e18;
@@ -381,6 +382,72 @@ contract Deploy is Script {
         }
         _contract("StockLender", address(lender));
         _end();
+    }
+
+    // ------------------------------------------------------------------------------------------------
+    // Governance: everything below goes through the 48-hour TimelockController that owns SignedSource.
+    // ------------------------------------------------------------------------------------------------
+
+    /// @notice Puts the market calendar under the timelock: transfers ownership and schedules the timelock's
+    ///         `acceptOwnership()`, executable after the delay with `acceptCalendar()`.
+    function handOverCalendar() external {
+        string memory json = vm.readFile(_outPath());
+        _load(json);
+        USMarketCalendar calendar = USMarketCalendar(vm.parseJsonAddress(json, ".contracts['USMarketCalendar']"));
+        TimelockController timelock =
+            TimelockController(payable(vm.parseJsonAddress(json, ".contracts['TimelockController']")));
+        _begin();
+        calendar.transferOwnership(address(timelock));
+        timelock.schedule(
+            address(calendar),
+            0,
+            abi.encodeWithSignature("acceptOwnership()"),
+            bytes32(0),
+            CALENDAR_SALT,
+            timelock.getMinDelay()
+        );
+        vm.stopBroadcast();
+    }
+
+    function acceptCalendar() external {
+        string memory json = vm.readFile(_outPath());
+        address calendar = vm.parseJsonAddress(json, ".contracts['USMarketCalendar']");
+        TimelockController timelock =
+            TimelockController(payable(vm.parseJsonAddress(json, ".contracts['TimelockController']")));
+        _begin();
+        timelock.execute(calendar, 0, abi.encodeWithSignature("acceptOwnership()"), bytes32(0), CALENDAR_SALT);
+        vm.stopBroadcast();
+    }
+
+    /// @notice Proposes a new signer set: `NEW_SIGNERS` (comma-separated) and `NEW_QUORUM`. Executable after the delay
+    ///         with `executeSigners()` and the same environment.
+    function proposeSigners() external {
+        (TimelockController timelock, address source, bytes memory call, bytes32 salt) = _signerChange();
+        _begin();
+        timelock.schedule(source, 0, call, bytes32(0), salt, timelock.getMinDelay());
+        vm.stopBroadcast();
+        console.log("scheduled; operation id:");
+        console.logBytes32(timelock.hashOperation(source, 0, call, bytes32(0), salt));
+    }
+
+    function executeSigners() external {
+        (TimelockController timelock, address source, bytes memory call, bytes32 salt) = _signerChange();
+        _begin();
+        timelock.execute(source, 0, call, bytes32(0), salt);
+        vm.stopBroadcast();
+    }
+
+    function _signerChange() internal view returns (TimelockController, address, bytes memory, bytes32) {
+        string memory json = vm.readFile(_outPath());
+        address[] memory next = vm.envAddress("NEW_SIGNERS", ",");
+        uint8 quorum = uint8(vm.envUint("NEW_QUORUM"));
+        bytes memory call = abi.encodeCall(SignedSource.setSigners, (next, quorum));
+        return (
+            TimelockController(payable(vm.parseJsonAddress(json, ".contracts['TimelockController']"))),
+            vm.parseJsonAddress(json, ".contracts['SignedSource']"),
+            call,
+            keccak256(call)
+        );
     }
 
     function arbitrum() external {
