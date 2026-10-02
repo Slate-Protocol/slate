@@ -46,6 +46,7 @@ export const nav: NavGroup[] = [
       { slug: "stylus", title: "Stylus benchmark" },
       { slug: "prior-art", title: "Prior art" },
       { slug: "disclosures", title: "Disclosures" },
+      { slug: "decentralisation", title: "The path to independent signers" },
       { slug: "security", title: "Security and limitations" },
     ],
   },

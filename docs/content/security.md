@@ -7,7 +7,7 @@ description: What Slate trusts, what it does not, and what is not done yet.
 
 ## Trust assumptions
 
-- **Signers.** Prices for tokens without a Chainlink feed come from a 2-of-3 signer set, and today all three keys are ours. On-chain bounds limit the damage: a 0.5% maximum spread between signers, unanimity for moves over 10%, strictly increasing timestamps, and a 60-second future bound. They do not make a colluding majority honest. The set changes only through a 48-hour timelock.
+- **Signers.** Prices for tokens without a Chainlink feed come from a 2-of-3 signer set, and today all three keys are ours. On-chain bounds limit the damage: a 0.5% maximum spread between signers, unanimity for moves over 10%, strictly increasing timestamps, and a 60-second future bound. They do not make a colluding majority honest. The set changes only through a 48-hour timelock; [the path to independent signers](/decentralisation) sets out the handover.
 - **Robinhood's quote API.** The publisher's source. It is cross-checked against the token's on-chain multiplier, and against Chainlink where Chainlink has the same share price.
 - **Robinhood's token contracts.** Slate reads `uiMultiplier`, `newUIMultiplier`, `effectiveAt` and, where present, `oraclePaused`. See [Disclosures](/disclosures) for what those contracts do not enforce.
 - **Chainlink.** Where a Chainlink feed exists, Slate passes it through with its own status rules on top.
