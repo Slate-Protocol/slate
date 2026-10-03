@@ -19,7 +19,7 @@ const plexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://app.slate.0xo.in"),
-  title: "Slate dashboard",
+  title: { default: "Slate dashboard", template: "%s · Slate dashboard" },
   description: "Every Slate feed, its source, the multiplier it applies and why it will or won't serve a price.",
   icons: { icon: "/favicon.svg" },
 };

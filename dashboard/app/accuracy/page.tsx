@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default async function Accuracy() {
   const c = await coverage();
   return (
-    <Shell page="accuracy">
+    <Shell>
       <AccuracyBoard uncovered={c ? c.tokens - c.withFeed : null} />
     </Shell>
   );

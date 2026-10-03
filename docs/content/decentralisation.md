@@ -3,7 +3,7 @@ title: The path to independent signers
 description: Who controls what in Slate today, exactly what changes when the signer set is handed over, and the runbook for adding an independent signer.
 ---
 
-Slate's only off-chain input is a share price, signed by a committee. Today every key on that committee is Slate's. This page states what that means, what is already out of Slate's hands, and how the committee passes to independent signers, step by step. The dashboard's [Who signs the prices](https://app.slate.0xo.in/#signers) panel shows the current state, read from the chain.
+Slate's only off-chain input is a share price, signed by a committee. Today every key on that committee is Slate's. This page states what that means, what is already out of Slate's hands, and how the committee passes to independent signers, step by step. The dashboard's [Who signs the prices](https://app.slate.0xo.in/signers) panel shows the current state, read from the chain.
 
 ## Today
 

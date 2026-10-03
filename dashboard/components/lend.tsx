@@ -361,7 +361,11 @@ export function LendPanel({ testnet, mainnet }: { testnet: Testnet; mainnet: Mai
               </div>
             </div>
             <p className="text-[13px] text-muted">
-              Schedule a split in the Lab below. At the switch the naive-fed copy of this lender values labTSLA at four times its
+              Schedule a split in the{" "}
+              <a href="/lab" className="text-accent-text underline-offset-2 hover:underline">
+                Lab
+              </a>
+              . At the switch the naive-fed copy of this lender values labTSLA at four times its
               worth and will lend against it; the Slate-fed lender pauses until a post-split price lands. A reverse split does
               the opposite: the naive-fed lender liquidates healthy loans. The naive-fed copy is{" "}
               <ExplorerLink explorer={testnet.explorer} address={naiveLender} />, LAB ONLY.

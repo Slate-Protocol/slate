@@ -1,27 +1,14 @@
-import { LendPanel } from "@/components/lend";
-import { SignersPanel } from "@/components/signers";
-import { BasketPanel, CreatePanel, LabPanel, UsdgProof } from "@/components/live";
-import { FeedsTable, Legend, Overview } from "@/components/sections";
-import { Shell } from "@/components/shell";
-import { getDashboardData } from "@/lib/data";
+import { HashForward } from "@/components/hash-forward";
+import FeedsPage from "./feeds/page";
 
 export const revalidate = 60;
 
+/** The dashboard's front door shows Feeds; old links to its sections (/#lend) forward to their routes. */
 export default async function Dashboard() {
-  const data = await getDashboardData();
   return (
-    <Shell>
-      <Overview data={data} />
-      <UsdgProof />
-      <FeedsTable rows={data.rows} usdgUsd={data.usdgUsd} />
-      <Legend />
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-4">
-        <BasketPanel testnet={data.testnet} usdgUsd={data.usdgUsd} />
-        <CreatePanel testnet={data.testnet} />
-      </div>
-      <LendPanel testnet={data.testnet} mainnet={data.mainnet} />
-      <LabPanel testnet={data.testnet} />
-      <SignersPanel testnet={data.testnet} mainnet={data.mainnet} docsUrl={process.env.NEXT_PUBLIC_DOCS_URL ?? "https://docs.slate.0xo.in"} />
-    </Shell>
+    <>
+      <HashForward />
+      <FeedsPage />
+    </>
   );
 }
