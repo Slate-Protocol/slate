@@ -37,7 +37,7 @@ SLATE_FORK=1 SLATE_FORK_URL_rh_mainnet=http://127.0.0.1:8548 \
 
 ## AAPL with real USDG, through a real pool
 
-Slate's router bought 0.1 AAPL with **USDG** through the live AAPL/USDG Uniswap pool on Robinhood Chain mainnet (`0xAae0d815EE56e4092a5E5C2911E676Fea50B2d6D`), on a fork. It paid **32.79 USDG against a fair value of 32.71 USDG** (Chainlink AAPL × Chainlink USDG/USD), which is inside its 3% band, so the router accepted the route. The same check refuses a third-party TSLA pool on testnet that prices TSLA at $0.0675 against $354.11.
+Slate's router bought 0.1 AAPL with **USDG** through the live AAPL/USDG Uniswap pool on Robinhood Chain mainnet (`0xAae0d815EE56e4092a5E5C2911E676Fea50B2d6D`), on a fork. Pinned to mainnet block 78,690,791 (3 Oct 2026), it paid **33.36 USDG against a fair value of 33.38 USDG** (Chainlink AAPL × Chainlink USDG/USD), inside its 3% band, so the router accepted the route. The same check refuses a third-party TSLA pool on testnet that prices TSLA at $0.0675 against $354.11.
 
 ```bash
 cd contracts && python3 script/rpc_relay.py https://rpc.mainnet.chain.robinhood.com 8548 &

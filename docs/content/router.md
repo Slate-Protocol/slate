@@ -33,7 +33,7 @@ cd contracts && SLATE_FORK=1 forge test --match-test test_thirdPartyV3Pool_isRef
 
 ## Accepted routes
 
-- **Mainnet, real USDG:** on a fork of Robinhood Chain mainnet, the router bought 0.1 AAPL through the live AAPL/USDG pool for **32.79 USDG against 32.71 fair**, inside the band. See [USDG integration](/usdg).
+- **Mainnet, real USDG:** on a fork of Robinhood Chain mainnet, the router bought 0.1 AAPL through the live AAPL/USDG pool for **33.36 USDG against 33.38 fair** at block 78,690,791, inside the band. See [USDG integration](/usdg).
 - **Testnet, live:** one SLATE-5 share for 50.33 TESTUSD against a NAV of $49.96, through Slate's seeded Uniswap v4 pools (transaction `0xe53384ae…7d03`).
 
 ## Venues

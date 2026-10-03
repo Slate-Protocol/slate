@@ -156,19 +156,19 @@ export function UsdgProof() {
       <div className="grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-3">
         <div className="flex flex-col gap-0.5">
           <span className="text-xs text-muted">Paid for 0.1 AAPL</span>
-          <span className="font-mono text-2xl font-semibold">32.79 USDG</span>
+          <span className="font-mono text-2xl font-semibold">33.36 USDG</span>
         </div>
         <div className="flex flex-col gap-0.5">
           <span className="text-xs text-muted">Fair value (Chainlink AAPL × USDG/USD)</span>
-          <span className="font-mono text-2xl font-medium">32.71 USDG</span>
+          <span className="font-mono text-2xl font-medium">33.38 USDG</span>
         </div>
         <div className="flex flex-col gap-0.5">
           <span className="text-xs text-muted">Difference</span>
-          <span className="font-mono text-2xl font-medium">+0.25%</span>
+          <span className="font-mono text-2xl font-medium">−0.06%</span>
         </div>
       </div>
       <p className="text-[13px] text-muted">
-        SlateRouter on a fork of Robinhood Chain mainnet, buying through the live AAPL/USDG Uniswap pool{" "}
+        SlateRouter on a fork of Robinhood Chain mainnet at block 78,690,791, buying through the live AAPL/USDG Uniswap pool{" "}
         <span className="font-mono">0xAae0…2d6D</span> with Paxos USDG. Run it yourself:{" "}
         <span className="font-mono">forge test --match-test test_aaplUsdgPool_createsWithinTheBand</span>.
       </p>
