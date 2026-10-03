@@ -11,7 +11,7 @@ Chainlink publishes feeds for 35 Robinhood stock tokens on Robinhood Chain mainn
 
 The publisher supplies only signed reports, from its `/board` endpoint. Everything else is checked or read in the browser:
 
-1. **Signatures.** Each report is the exact bytes `SignedSource.submit` takes. Every 97-byte entry must carry the claimed price and time and recover, under `SignedSource`'s EIP-712 domain for Robinhood Chain mainnet, a distinct address in Slate's on-chain signer set; there must be at least the quorum. Until mainnet's `SignedSource` is deployed, the set is read from the testnet one, which holds the same keys.
+1. **Signatures.** Each report is the exact bytes `SignedSource.submit` takes. Every 97-byte entry must carry the claimed price and time and recover, under `SignedSource`'s EIP-712 domain for Robinhood Chain mainnet, a distinct address in Slate's on-chain signer set; there must be at least the quorum.
 2. **Multiplier.** `uiMultiplier()` is read from each token on mainnet.
 3. **Chainlink.** `latestRoundData()` and `decimals()` are read from each Chainlink proxy on mainnet.
 

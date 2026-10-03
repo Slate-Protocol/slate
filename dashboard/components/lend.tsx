@@ -13,7 +13,7 @@ type Mainnet = DashboardData["mainnet"];
 
 const CRWD: Address = "0xea72Ecca2d0f6bFA1394DBBCff85b52CD4233931";
 
-/** The mainnet lender, read-only: what one CRWD token would borrow today, priced by CRWD's SlateFeed. */
+/** The mainnet lender: a live quote for CRWD, a token with no Chainlink feed, priced by CRWD's SlateFeed. */
 function MainnetLender({ lender }: { lender: Address }) {
   const { data } = useReadContracts({
     contracts: reads([{ address: lender, abi: lenderAbi, functionName: "quote", args: [CRWD, 10n ** 18n], chainId: 4663 }]),
@@ -21,17 +21,37 @@ function MainnetLender({ lender }: { lender: Address }) {
   });
   const q = data?.[0]?.result as QuoteRead | undefined;
   return (
-    <p className="rounded-lg border border-border px-3 py-2.5 text-sm">
-      <span className="font-semibold">On Robinhood Chain mainnet.</span>{" "}
-      <ExplorerLink explorer="https://robinhoodchain.blockscout.com" address={lender} /> lends Paxos USDG against CRWD, a token
-      with no Chainlink feed.{" "}
-      {q?.[0]
-        ? `Through CRWD's SlateFeed it values one token at ${usd(Number(formatUnits(q[1], 6)))} and would lend up to ${num(q[2], 6, 2)} USDG against it (40%).`
-        : q
-          ? "CRWD's feed is not serving a price right now, so it would lend nothing."
-          : ""}{" "}
-      <span className="text-muted">No USDG is supplied yet: read-only.</span>
-    </p>
+    <section aria-labelledby="mainnet-lender-title" className="flex flex-col gap-3 rounded-[12px] border border-border p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h3 id="mainnet-lender-title" className="font-semibold">
+          Live on Robinhood Chain mainnet: a lender for a token Chainlink cannot price
+        </h3>
+        <span className="rounded-md bg-warn-bg px-2 py-0.5 text-xs font-semibold text-warn">CRWD · no Chainlink feed</span>
+      </div>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-3">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-xs text-muted">One CRWD token, valued at</span>
+          <span className="font-mono text-2xl font-semibold">{q?.[0] ? usd(Number(formatUnits(q[1], 6))) : "—"}</span>
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-xs text-muted">Borrow limit per token (40%)</span>
+          <span className="font-mono text-2xl font-medium">{q?.[0] ? `${num(q[2], 6, 2)} USDG` : "—"}</span>
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-xs text-muted">Priced by</span>
+          <span className="text-base font-medium">CRWD&apos;s SlateFeed</span>
+        </div>
+      </div>
+      <p className="text-[13px] text-muted">
+        <ExplorerLink explorer="https://robinhoodchain.blockscout.com" address={lender} />{" "}
+        takes Paxos USDG as the loan asset and lists the real CRWD token at 40% loan-to-value, liquidation at 60%, reading
+        CRWD&apos;s SlateFeed through <span className="font-mono">latestRoundData()</span> alone. CRWD has no Chainlink feed, so
+        no other lender on this chain can value it.
+        {q && !q[0] ? " CRWD's feed is refusing right now, so the lender quotes nothing until it serves a price again." : ""}{" "}
+        Anyone can read the quote: <span className="font-mono break-all">quote(CRWD, 1e18)</span> on{" "}
+        <span className="font-mono">0x6677…4F52</span>.
+      </p>
+    </section>
   );
 }
 type Mode = "deposit" | "borrow" | "repay" | "withdraw";
@@ -198,15 +218,18 @@ export function LendPanel({ testnet, mainnet }: { testnet: Testnet; mainnet: Mai
       <div className="flex max-w-[780px] flex-col gap-1">
         <h2 id="lend-title" className="flex flex-wrap items-center gap-2 text-lg font-semibold">
           Lend against a stock token
-          <span className="rounded-md bg-surface-2 px-2 py-0.5 text-xs font-semibold">Integration · RH testnet</span>
+          <span className="rounded-md bg-surface-2 px-2 py-0.5 text-xs font-semibold">Integration · mainnet and testnet</span>
         </h2>
         <p className="text-muted">
           StockLender is a minimal lending market written the way any other protocol would write one. It prices collateral
           through Slate feeds with nothing but Chainlink&apos;s <span className="font-mono text-[13px]">latestRoundData()</span>,
           with no Slate code and no special access. When a feed refuses, the lender stops lending and liquidating; repaying
-          always works. A proof, not a product: loans in TESTUSD, 50% loan-to-value, liquidation at 65%, no interest.
+          always works. On mainnet it prices CRWD in USDG. On testnet you can borrow against it yourself: loans in TESTUSD, 50%
+          loan-to-value, liquidation at 65%, no interest.
         </p>
       </div>
+
+      {mainnet.contracts.StockLender && <MainnetLender lender={mainnet.contracts.StockLender as Address} />}
 
       <div className="overflow-hidden rounded-[12px] border border-border">
         <div role="table" aria-label="Lending markets" className="hidden text-sm md:block">
@@ -251,8 +274,6 @@ export function LendPanel({ testnet, mainnet }: { testnet: Testnet; mainnet: Mai
           ))}
         </ul>
       </div>
-
-      {mainnet.contracts.StockLender && <MainnetLender lender={mainnet.contracts.StockLender as Address} />}
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-4">
         <div className="flex flex-col gap-3">

@@ -47,7 +47,7 @@ SLATE_FORK=1 SLATE_FORK_URL_rh_mainnet=http://127.0.0.1:8548 \
 
 ## Live now
 
-On **Robinhood Chain mainnet** (chain 4663), since 3 Oct 2026: twenty SlateFeeds for stock tokens with no Chainlink feed (CRWD, NFLX, AVGO, LLY, COST, BA, JNJ, IBM, PFE, F, RIVN, SNAP, RBLX, RDDT, HIMS, SHOP, LMT, GLD, AMC, CCL), AAPL over Chainlink's total-return feed, CRWD and AAPL quoted in USDG, SignedSource `0xf0b57272f1D69083019E8953B82bC128002D7526` owned by a 48-hour timelock, and a StockLender quoting USDG loans against CRWD. All verified on Sourcify. Addresses: [docs: Deployments](https://docs.slate.0xo.in/deployments).
+On **Robinhood Chain mainnet** (chain 4663), since 3 Oct 2026: twenty SlateFeeds for stock tokens with no Chainlink feed (CRWD, NFLX, AVGO, LLY, COST, BA, JNJ, IBM, PFE, F, RIVN, SNAP, RBLX, RDDT, HIMS, SHOP, LMT, GLD, AMC, CCL), AAPL over Chainlink's total-return feed, CRWD and AAPL quoted in USDG, SignedSource `0xf0b57272f1D69083019E8953B82bC128002D7526` owned by a 48-hour timelock, and StockLender, a USDG lender that values CRWD through its SlateFeed. All verified on Sourcify. Addresses: [docs: Deployments](https://docs.slate.0xo.in/deployments).
 
 On **Robinhood Chain testnet** (chain 46630), with prices signed 24/5 by three keys and relayed by the publisher on Railway ([status](https://publisher-production-891d.up.railway.app/)). Every contract is verified on the [explorer](https://explorer.testnet.chain.robinhood.com). The full list is in [`deployments/deployments.json`](deployments/deployments.json).
 
@@ -92,6 +92,13 @@ Install with `forge install Slate-Protocol/slate` and the remapping `@slate-prot
 
 Slate is for protocols that want to use stock tokens. [`StockLender`](contracts/src/examples/StockLender.sol) is a minimal lending market written the way any third party would write one: it prices collateral through Slate feeds with nothing but `latestRoundData()`, with no Slate code and no special access. When a feed refuses, it stops lending and liquidating; repaying always works.
 
+- **Live on Robinhood Chain mainnet: a lender for a token Chainlink cannot price.** [`StockLender`](https://robinhoodchain.blockscout.com/address/0x66770067Bf690a8eAcA95aCAB896659835704F52) takes Paxos USDG as the loan asset and lists the real CRWD token, priced through CRWD's SlateFeed. CRWD has no Chainlink feed, so no other lender on the chain can value it. At block 78,972,600 (3 Oct 2026, market closed) `quote(CRWD, 1 token)` returned **$1,079.90** with a borrow limit of **431.96 USDG** (40% loan-to-value). Anyone can read it:
+
+  ```bash
+  cast call 0x66770067Bf690a8eAcA95aCAB896659835704F52 "quote(address,uint256)(bool,uint256,uint256)" \
+    0xea72Ecca2d0f6bFA1394DBBCff85b52CD4233931 1000000000000000000 --rpc-url https://rpc.mainnet.chain.robinhood.com
+  # true, 1079900000 (= $1,079.90), 431960000 (= 431.96 USDG)
+  ```
 - **A loan against Robinhood's NFLX token** on testnet: 0.58 NFLX deposited, priced at $67.50 a token through its SlateFeed, 19.57 TESTUSD borrowed ([transaction](https://explorer.testnet.chain.robinhood.com/tx/0xefa1a7ce6287dcefb36d1d35f6a7282845ae3efe343dd26f7499f01464e317a8)).
 - **The same lender on a naive feed**, through a live 4:1 Lab split: at the switch it valued one labTSLA at $1,484.94 and lent 742.47 TESTUSD against a token worth $372.94 ([transaction](https://explorer.testnet.chain.robinhood.com/tx/0xdfeb0d58be87ee32a303c1a7980ea75cc8ca9265958949279a48069c4af8f57a)). The Slate-fed lender paused borrowing until the post-split price landed.
 - **On a fork of mainnet**, the lender borrows real Paxos USDG against the real CRWD token, which has no Chainlink feed: `forge test --match-test test_usdgLoanAgainstRealCrwd`.

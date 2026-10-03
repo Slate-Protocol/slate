@@ -47,7 +47,17 @@ The naive-fed lender is left with a loan worth twice its collateral, and liquida
 
 ## On mainnet
 
-`StockLender` is live on Robinhood Chain mainnet at [`0x66770067Bf690a8eAcA95aCAB896659835704F52`](https://robinhoodchain.blockscout.com/address/0x66770067Bf690a8eAcA95aCAB896659835704F52). It takes Paxos USDG as the loan asset and lists CRWD on its SlateFeed: 40% loan-to-value, liquidation at 60%. CRWD has no Chainlink feed, so no other lender can price it. At deployment, `quote(CRWD, 1 token)` valued one CRWD at $1,072.42, with up to 428.97 USDG borrowable. No USDG is supplied yet, so it is read-only for now. CRWD can be bought on-chain through Uniswap v4: the USDG/CRWD pool (2.945% fee) quoted 0.01 CRWD at 10.81 USDG on 3 Oct. A fork test borrows real USDG against the real CRWD token:
+`StockLender` is live on Robinhood Chain mainnet at [`0x66770067Bf690a8eAcA95aCAB896659835704F52`](https://robinhoodchain.blockscout.com/address/0x66770067Bf690a8eAcA95aCAB896659835704F52): a lender for a token Chainlink cannot price. It takes Paxos USDG as the loan asset and lists the real CRWD token on CRWD's SlateFeed, at 40% loan-to-value with liquidation at 60%. CRWD has no Chainlink feed, so no other lender on Robinhood Chain can value it.
+
+The quote is public. At block 78,972,600 (3 Oct 2026, market closed) it valued one CRWD at **$1,079.90**, with a borrow limit of **431.96 USDG**:
+
+```bash
+cast call 0x66770067Bf690a8eAcA95aCAB896659835704F52 "quote(address,uint256)(bool,uint256,uint256)" \
+  0xea72Ecca2d0f6bFA1394DBBCff85b52CD4233931 1000000000000000000 --rpc-url https://rpc.mainnet.chain.robinhood.com
+# true, 1079900000 (= $1,079.90), 431960000 (= 431.96 USDG)
+```
+
+Anyone can supply USDG, and borrowing draws on what is supplied. CRWD itself can be bought on-chain through the Uniswap v4 USDG/CRWD pool (2.945% fee), which quoted 0.01 CRWD at 10.81 USDG on 3 Oct. A fork test runs the whole loan, real USDG against the real CRWD token:
 
 ```bash
 cd contracts && python3 script/rpc_relay.py https://rpc.mainnet.chain.robinhood.com 8548 &

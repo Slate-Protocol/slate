@@ -97,8 +97,8 @@ export function Overview({ data }: { data: DashboardData }) {
           </div>
           {crwd.snapshot && (
             <p className="text-xs text-muted">
-              Share and token price are from Slate&apos;s fork test against the live token (1 Oct 2026) until CRWD&apos;s mainnet
-              feed is deployed. The multiplier is read live from the token.
+              The live read from CRWD&apos;s mainnet SlateFeed did not answer, so share and token price are from Slate&apos;s fork
+              test against the live token (1 Oct 2026). The multiplier is read live from the token.
             </p>
           )}
         </div>

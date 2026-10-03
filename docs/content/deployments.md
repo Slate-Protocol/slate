@@ -64,7 +64,7 @@ Both networks were deployed by the same address, so the same address can belong 
 | SlateFeedFactory | [`0xd921ad145FA22b0C8A4846d234857FBEFFDfDdc6`](https://robinhoodchain.blockscout.com/address/0xd921ad145FA22b0C8A4846d234857FBEFFDfDdc6) |
 | SlateQuotedFeed CRWD/USDG | [`0x8B27311a3493a85E063f97e4bB59cf3a22aEA507`](https://robinhoodchain.blockscout.com/address/0x8B27311a3493a85E063f97e4bB59cf3a22aEA507) |
 | SlateQuotedFeed AAPL/USDG | [`0xe6943e58E3C3e8a29502430237bfC80bB6099c45`](https://robinhoodchain.blockscout.com/address/0xe6943e58E3C3e8a29502430237bfC80bB6099c45) |
-| StockLender (USDG loans against CRWD; read-only, nothing supplied) | [`0x66770067Bf690a8eAcA95aCAB896659835704F52`](https://robinhoodchain.blockscout.com/address/0x66770067Bf690a8eAcA95aCAB896659835704F52) |
+| StockLender (USDG lender; values CRWD through its SlateFeed) | [`0x66770067Bf690a8eAcA95aCAB896659835704F52`](https://robinhoodchain.blockscout.com/address/0x66770067Bf690a8eAcA95aCAB896659835704F52) |
 | SlateFeed CRWD (multiplier 4.000) | [`0x84Ad4c99b6AB003b97943E9c48aF73ba20B5Cc77`](https://robinhoodchain.blockscout.com/address/0x84Ad4c99b6AB003b97943E9c48aF73ba20B5Cc77) |
 | SlateFeed AAPL (over Chainlink's total-return feed) | [`0x0c098235d4069Ad82c9EcaeF8264835C5A0dBc7D`](https://robinhoodchain.blockscout.com/address/0x0c098235d4069Ad82c9EcaeF8264835C5A0dBc7D) |
 
