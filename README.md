@@ -88,6 +88,8 @@ uint256 usd = SlatePrice.value(amount, 18, price, 8, 6);
 
 Install with `forge install Slate-Protocol/slate` and the remapping `@slate-protocol/contracts/=lib/slate/packages/contracts/src/` (npm publication pending). [Docs: Integrate in five lines](https://docs.slate.0xo.in/integrate).
 
+**Try a feed in a browser first:** [app.slate.0xo.in/price/CRWD](https://app.slate.0xo.in/price/CRWD) returns any Slate feed as JSON (price, multiplier, observedAt, status, feed address), read from the chain on every request. `/price` lists them all. [Docs: Price API](https://docs.slate.0xo.in/api).
+
 ## A loan against a stock token
 
 Slate is for protocols that want to use stock tokens. [`StockLender`](contracts/src/examples/StockLender.sol) is a minimal lending market written the way any third party would write one: it prices collateral through Slate feeds with nothing but `latestRoundData()`, with no Slate code and no special access. When a feed refuses, it stops lending and liquidating; repaying always works.

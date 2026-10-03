@@ -174,6 +174,18 @@ export function FeedsTable({ rows: serverRows, usdgUsd }: { rows: FeedRow[]; usd
     <section id="feeds" aria-labelledby="feeds-title" className={`${card} scroll-mt-20 overflow-hidden`}>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
         <h2 id="feeds-title" className="font-semibold">All feeds</h2>
+        <span className="text-[13px] text-muted">
+          Each as JSON:{" "}
+          {/* A JSON route handler, not a page: a full navigation, so <a>, not <Link>. */}
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+          <a href="/price/CRWD" className="font-mono text-accent-text underline-offset-2 hover:underline">
+            /price/CRWD
+          </a>{" "}
+          ·{" "}
+          <a href="https://docs.slate.0xo.in/api" className="text-accent-text underline-offset-2 hover:underline">
+            Price API
+          </a>
+        </span>
       </div>
       <div role="table" aria-label="All feeds" className="hidden text-sm md:block">
         <div role="row" className={`${cols} text-xs tracking-[0.04em] text-muted uppercase`}>

@@ -25,4 +25,5 @@ export const wrapFetchWithPayment = undefined;
 export const x402Client = undefined;
 export const x402HTTPResourceServer = undefined;
 export const x402ResourceServer = undefined;
-export default {};
+const empty = {};
+export default empty;

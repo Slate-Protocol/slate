@@ -15,7 +15,7 @@ type Deployments = {
 };
 
 /** The repo's deployments.json: the local copy in development, GitHub in production. */
-async function deployments(): Promise<Deployments> {
+export async function deployments(): Promise<Deployments> {
   try {
     const local = await readFile(path.join(process.cwd(), "..", "deployments", "deployments.json"), "utf8");
     return JSON.parse(local) as Deployments;
