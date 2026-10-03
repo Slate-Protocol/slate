@@ -16,6 +16,7 @@ const routes = [
   { href: "/lab", label: "Lab", lab: true },
   { href: "/signers", label: "Signers" },
   { href: "/accuracy", label: "Accuracy vs Chainlink" },
+  { href: "/arithmetic", label: "The arithmetic" },
   { href: "/playground", label: "Playground" },
 ];
 

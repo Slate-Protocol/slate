@@ -54,3 +54,5 @@ Every source declares an immutable `PriceKind`:
 - `TOTAL_RETURN`: already per token. SlateFeed passes it through.
 
 `SlateFeedFactory.deployCalibrated` refuses to deploy a feed whose answer disagrees with an independent reference by more than a bound. A source declared with the wrong kind is off by the multiplier and never ships.
+
+See it with live numbers: [The arithmetic](https://app.slate.0xo.in/arithmetic) reads any Slate feed, its token's multiplier and its timestamp from the chain, and works the answer out step by step.

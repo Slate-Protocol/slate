@@ -25,6 +25,6 @@ Live on Robinhood Chain mainnet: CRWD's first signed share price, $268.105 × it
 
 ## Where to go next
 
-- Integrating a price? Start with the [Quickstart](/quickstart). To look at one first, open [app.slate.0xo.in/price/CRWD](https://app.slate.0xo.in/price/CRWD) in a browser: the [Price API](/api) returns any feed as JSON, read from the chain.
+- Integrating a price? Start with the [Quickstart](/quickstart). To look at one first, open [app.slate.0xo.in/price/CRWD](https://app.slate.0xo.in/price/CRWD) in a browser: the [Price API](/api) returns any feed as JSON, read from the chain. The dashboard's [playground](https://app.slate.0xo.in/playground) reads any feed address and hands you the Solidity, and [The arithmetic](https://app.slate.0xo.in/arithmetic) shows share price × multiplier step by step for every feed.
 - Want the reasoning? Read [The multiplier problem](/concepts/multipliers) and [Feed statuses](/concepts/statuses).
 - Judging what is new? See [Prior art](/prior-art) and [Disclosures](/disclosures).

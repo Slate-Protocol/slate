@@ -3,6 +3,8 @@ title: Integrate in five lines
 description: Read any Slate feed fail-closed with @slate-protocol/contracts, the interfaces and a small helper.
 ---
 
+To try a feed before writing code, paste its address into the [integration playground](https://app.slate.0xo.in/playground): it shows what `latestRoundData()` returns and gives you this snippet with the address filled in.
+
 Every Slate feed is a Chainlink `AggregatorV3Interface`, so code that reads Chainlink already reads Slate. The integration package adds the one thing that differs: a Slate feed refuses, by reverting, rather than serve a price it cannot vouch for. `SlatePrice.tryRead` turns that refusal into `ok = false`, so your protocol pauses what needs a price instead of guessing.
 
 ```solidity
