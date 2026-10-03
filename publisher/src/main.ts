@@ -31,12 +31,14 @@ import {
   type Network,
 } from "./config.ts";
 import { board, updateBoard } from "./board.ts";
+import { historyEnabled, readHistory, storeSnapshot } from "./history.ts";
 import { COSIGNER_URLS, cosign } from "./cosigners.ts";
 import { buildReport, feedId } from "./report.ts";
 import { fetchQuote, quoteProblems, type Quote } from "./robinhood.ts";
 
 const EXTENDED_SESSION = 1;
 let boardBusy = false;
+let lastSnapshotHour = 0;
 const ONE = 10n ** 18n;
 
 type FeedState = {
@@ -403,6 +405,14 @@ async function cycle(keys: Keys) {
       },
       multiplierProblem,
     })
+      .then(async () => {
+        // Once an hour, the board into Postgres (history.ts): the accuracy history the dashboard charts.
+        const hour = Math.floor(now / 3600);
+        if (!historyEnabled() || hour === lastSnapshotHour) return;
+        lastSnapshotHour = hour;
+        const stored = await storeSnapshot(Object.values(board.rows), mainnetClient as PublicClient, now);
+        log("board snapshot", { stored });
+      })
       .catch((e) => log("board update failed", { error: reason(e) }))
       .finally(() => (boardBusy = false));
   }
@@ -420,7 +430,18 @@ async function main() {
     return;
   }
 
-  createServer((req, res) => {
+  createServer(async (req, res) => {
+    if (req.url?.startsWith("/history")) {
+      try {
+        const body = await readHistory();
+        res.writeHead(200, { "content-type": "application/json", "access-control-allow-origin": "*", "cache-control": "public, max-age=300" });
+        res.end(JSON.stringify(body));
+      } catch (e) {
+        res.writeHead(502, { "content-type": "application/json", "access-control-allow-origin": "*" });
+        res.end(JSON.stringify({ collecting: true, error: reason(e) }));
+      }
+      return;
+    }
     const stale = Date.now() - Date.parse(state.lastCycleAt || state.startedAt) > 5 * 60_000;
     res.writeHead(req.url === "/healthz" && stale ? 503 : 200, {
       "content-type": "application/json",

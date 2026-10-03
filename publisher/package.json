@@ -14,10 +14,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "pg": "8.23.1",
     "viem": "2.57.2"
   },
   "devDependencies": {
     "@types/node": "^24",
+    "@types/pg": "^8.23.1",
     "typescript": "^5"
   }
 }
