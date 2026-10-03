@@ -38,12 +38,10 @@ export function QuoteToggle({ wide = false }: { wide?: boolean }) {
   );
 }
 
-export function ConnectWallet() {
-  const { address, isConnected, isConnecting } = useConnection();
-  const { disconnect } = useDisconnect();
+/** Opens the wallet modal, or the fallback dialog when there is no Reown project id or the modal fails to load. */
+function useOpenWallet() {
   const [opening, setOpening] = useState(false);
   const [fallback, setFallback] = useState(false);
-  useResumeWalletConnect();
   const open = async () => {
     if (!projectId) return setFallback(true);
     setOpening(true);
@@ -55,6 +53,34 @@ export function ConnectWallet() {
       setOpening(false);
     }
   };
+  return { open, opening, dialog: <FallbackWalletDialog open={fallback} onClose={() => setFallback(false)} /> };
+}
+
+/** In a panel, where the action button would be: says what a wallet is for, and opens the wallet modal. */
+export function ConnectPrompt({ to }: { to: string }) {
+  const { open, opening, dialog } = useOpenWallet();
+  return (
+    <>
+      <button
+        type="button"
+        disabled={opening}
+        onClick={open}
+        aria-haspopup="dialog"
+        className="flex min-h-11 w-full items-center justify-between gap-3 rounded-[10px] border border-border px-4 py-2.5 text-left text-sm hover:border-faint disabled:opacity-60"
+      >
+        <span className="text-muted">Connect a wallet on Robinhood Chain testnet to {to}.</span>
+        <span className="shrink-0 font-semibold text-accent-text">{opening ? "Opening…" : "Connect wallet"}</span>
+      </button>
+      {dialog}
+    </>
+  );
+}
+
+export function ConnectWallet() {
+  const { address, isConnected, isConnecting } = useConnection();
+  const { disconnect } = useDisconnect();
+  const { open, opening, dialog } = useOpenWallet();
+  useResumeWalletConnect();
 
   if (isConnected && address) return <AccountMenu address={address} onDisconnect={() => disconnect()} />;
   return (
@@ -68,7 +94,7 @@ export function ConnectWallet() {
       >
         {opening ? "Opening…" : isConnecting ? "Connecting…" : "Connect wallet"}
       </button>
-      <FallbackWalletDialog open={fallback} onClose={() => setFallback(false)} />
+      {dialog}
     </>
   );
 }

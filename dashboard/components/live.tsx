@@ -29,6 +29,7 @@ import {
 import type { DashboardData } from "@/lib/data";
 import { useCashLiquidity, type Liquidity } from "@/lib/liquidity";
 import { FEED_STATUS, type FeedStatusLabel } from "@/lib/status";
+import { ConnectPrompt } from "./controls";
 import { LabTag, Pill, card } from "./sections";
 
 export const TESTNET = 46630;
@@ -462,7 +463,7 @@ export function CreatePanel({ testnet }: { testnet: Testnet }) {
           {tx.busy ? `${tx.busy}…` : action?.label}
         </button>
       ) : (
-        <p className="rounded-[10px] border border-border px-4 py-3 text-sm text-muted">Connect a wallet on Robinhood Chain testnet to create.</p>
+        <ConnectPrompt to={mode === "redeem" ? "redeem" : "create"} />
       )}
       {isConnected && slateBalance !== undefined && (
         <p className="text-[13px] text-muted">
@@ -610,7 +611,7 @@ export function LabPanel({ testnet }: { testnet: Testnet }) {
             {tx.busy ? `${tx.busy}…` : splitUp ? "Schedule a 4:1 split in 90 s" : "Schedule a 1:4 reverse split in 90 s"}
           </button>
         ) : (
-          <span className="text-sm text-muted">Connect a wallet on Robinhood Chain testnet to schedule a split.</span>
+          <ConnectPrompt to="schedule a split" />
         )}
         {coolingDown && <span className="text-[13px] text-muted">Next action allowed at {new Date(cooldownEnds * 1000).toLocaleTimeString()}.</span>}
         {c.SlateLabStock && (

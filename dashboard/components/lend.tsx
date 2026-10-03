@@ -5,6 +5,7 @@ import { formatUnits, maxUint256, parseUnits, zeroAddress, type Address } from "
 import { useConnection, useReadContracts } from "wagmi";
 import { erc20Abi, labStockAbi, lenderAbi, testDollarAbi } from "@/lib/abi";
 import type { DashboardData } from "@/lib/data";
+import { ConnectPrompt } from "./controls";
 import { ExplorerLink, POLL, TESTNET, TxMessage, button, num, reads, usd, useTx } from "./live";
 import { LabTag, card } from "./sections";
 
@@ -325,7 +326,7 @@ export function LendPanel({ testnet, mainnet }: { testnet: Testnet; mainnet: Mai
               {tx.busy ? `${tx.busy}…` : action?.label}
             </button>
           ) : (
-            <p className="rounded-[10px] border border-border px-4 py-3 text-sm text-muted">Connect a wallet on Robinhood Chain testnet to borrow.</p>
+            <ConnectPrompt to={mode === "deposit" ? "deposit" : mode === "withdraw" ? "withdraw" : mode === "repay" ? "repay" : "borrow"} />
           )}
           <TxMessage message={tx.message} explorer={testnet.explorer} />
           <p className="text-[13px] text-muted">
