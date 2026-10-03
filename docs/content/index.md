@@ -16,7 +16,7 @@ Slate does two things nobody else does:
 
 ## CRWD in one line
 
-A signed share price of $264.98 × CRWD's on-chain multiplier of 4.000 = **$1,059.92** per token: exactly Robinhood's own `tokenBid` at the same moment. [Verify every part of that yourself](/verify-crwd).
+Live on Robinhood Chain mainnet: CRWD's first signed share price, $268.105 × its on-chain multiplier of 4.000 = **$1,072.42** per token ([transaction](https://robinhoodchain.blockscout.com/tx/0x0d8a2bde33c69e0ae8f931314a6ebe3dcebf29a1860c268d0ffdb3e30e9cccda), Fri 2 Oct 15:04:50 EDT). In the fork test before deployment, $264.98 × 4.000 = $1,059.92 matched Robinhood's own `tokenBid` exactly. [Verify every part of that yourself](/verify-crwd).
 
 ## What is live
 
