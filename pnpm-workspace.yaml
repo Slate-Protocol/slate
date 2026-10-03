@@ -5,6 +5,8 @@ packages:
 minimumReleaseAgeExclude:
   - viem@2.57.2
 # Native install scripts: sharp (Next image optimisation) may build; unrs-resolver ships prebuilt binaries.
+# @reown/appkit's only script is a postinstall version check, not a build.
 allowBuilds:
   sharp: true
   unrs-resolver: false
+  "@reown/appkit": false
