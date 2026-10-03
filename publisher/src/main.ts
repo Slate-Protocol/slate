@@ -73,7 +73,8 @@ function reason(e: unknown): string {
   if (e instanceof BaseError) {
     const revert = e.walk((x) => x instanceof ContractFunctionRevertedError);
     if (revert instanceof ContractFunctionRevertedError) return revert.data?.errorName ?? revert.shortMessage;
-    return e.shortMessage;
+    // An RPC node's own error (rate limit, missing state…): keep what it said, which shortMessage drops.
+    return e.details && e.details !== e.shortMessage ? `${e.shortMessage} ${e.details}`.slice(0, 300) : e.shortMessage;
   }
   return e instanceof Error ? e.message : String(e);
 }
@@ -409,9 +410,9 @@ async function cycle(keys: Keys) {
         // Once an hour, the board into Postgres (history.ts): the accuracy history the dashboard charts.
         const hour = Math.floor(now / 3600);
         if (!historyEnabled() || hour === lastSnapshotHour) return;
-        lastSnapshotHour = hour;
         const stored = await storeSnapshot(Object.values(board.rows), mainnetClient as PublicClient, now);
-        log("board snapshot", { stored });
+        lastSnapshotHour = hour; // only once stored: a failed snapshot is retried on the next board update
+        log("board snapshot", { stored, rows: Object.keys(board.rows).length });
       })
       .catch((e) => log("board update failed", { error: reason(e) }))
       .finally(() => (boardBusy = false));

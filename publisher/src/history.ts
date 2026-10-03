@@ -92,21 +92,16 @@ export function snapshotRow(r: BoardRow, multiplier: bigint, answer: bigint, dec
 export async function storeSnapshot(rows: BoardRow[], mainnet: PublicClient, now: number): Promise<number> {
   const { pool, ready } = db();
   await ready;
-  const withPrice = rows.filter((r) => r.latest);
-  const reads = await mainnet.multicall({
-    allowFailure: true,
-    contracts: withPrice.flatMap((r) => [
-      { address: r.token as Address, abi: erc8056Abi, functionName: "uiMultiplier" } as const,
-      { address: r.chainlink as Address, abi: aggregatorAbi, functionName: "latestRoundData" } as const,
-    ]),
-  });
+  // Plain reads, one token at a time (the publisher's mainnet client has no multicall contract configured).
   let stored = 0;
-  for (const [i, r] of withPrice.entries()) {
-    const m = reads[2 * i];
-    const round = reads[2 * i + 1];
-    if (m.status !== "success" || round.status !== "success") continue;
-    const [, answer, , updatedAt] = round.result as readonly [bigint, bigint, bigint, bigint, bigint];
-    const s = snapshotRow(r, m.result as bigint, answer, r.chainlinkDecimals, Number(updatedAt));
+  for (const r of rows.filter((x) => x.latest)) {
+    const [m, round] = await Promise.all([
+      mainnet.readContract({ address: r.token as Address, abi: erc8056Abi, functionName: "uiMultiplier" }).catch(() => null),
+      mainnet.readContract({ address: r.chainlink as Address, abi: aggregatorAbi, functionName: "latestRoundData" }).catch(() => null),
+    ]);
+    if (m === null || round === null) continue;
+    const [, answer, , updatedAt] = round as readonly [bigint, bigint, bigint, bigint, bigint];
+    const s = snapshotRow(r, m as bigint, answer, r.chainlinkDecimals, Number(updatedAt));
     if (!s) continue;
     const res = await pool.query(
       `INSERT INTO board_snapshots (taken_at, symbol, multiplier, slate_share_price, slate_price, slate_observed_at, chainlink_price,
