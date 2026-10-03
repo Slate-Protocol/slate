@@ -98,3 +98,9 @@
     outline-offset: 2px;
   }
 }
+
+/* Reown AppKit's wallet modal: its monospace face (used on small buttons) in the dashboard's IBM Plex Mono, so it
+   never waits on, or falls back from, Reown's own font. The doubled :root outranks AppKit's own :root rule. */
+:root:root {
+  --apkt-fontFamily-mono: "IBM Plex Mono", ui-monospace, monospace;
+}

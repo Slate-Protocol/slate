@@ -62,7 +62,9 @@ function loadKit(): Promise<Kit> {
         icons: ["https://app.slate.0xo.in/favicon.svg"],
       },
       themeMode: theme(),
-      themeVariables: { "--w3m-accent": accent(), "--w3m-font-family": "IBM Plex Sans, system-ui, sans-serif", "--w3m-border-radius-master": "2px" },
+      // The page's IBM Plex, already loaded, instead of AppKit's fonts from Reown's server. AppKit has no option for its
+      // monospace face, so globals.css sets that variable (--apkt-fontFamily-mono) too.
+      themeVariables: { "--w3m-accent": accent(), "--w3m-font-family": '"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif', "--w3m-border-radius-master": "2px" },
       features: { analytics: false, email: false, socials: false, swaps: false, onramp: false, send: false, receive: false, history: false },
     });
   });
