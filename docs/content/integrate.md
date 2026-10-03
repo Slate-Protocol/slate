@@ -24,14 +24,19 @@ uint256 usd = SlatePrice.value(amount, 18, price, 8, 6);
 
 ## Install
 
+**npm**, [`@slate-protocol/contracts`](https://www.npmjs.com/package/@slate-protocol/contracts):
+
+```bash
+npm install @slate-protocol/contracts
+echo '@slate-protocol/contracts/=node_modules/@slate-protocol/contracts/src/' >> remappings.txt
+```
+
 **Foundry**, from GitHub:
 
 ```bash
 forge install Slate-Protocol/slate
 echo '@slate-protocol/contracts/=lib/slate/packages/contracts/src/' >> remappings.txt
 ```
-
-**npm** (`@slate-protocol/contracts`, publication pending): map `@slate-protocol/contracts/=node_modules/@slate-protocol/contracts/src/`.
 
 ## What is in it
 

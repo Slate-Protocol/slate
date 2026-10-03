@@ -224,8 +224,8 @@ export function Playground() {
             <pre className="overflow-x-auto bg-code px-4 py-3.5 font-mono text-[12.5px] leading-relaxed">{solidity(r)}</pre>
             <div className="flex flex-col gap-2 border-t border-border px-4 py-3 text-[13px] text-muted">
               <span>
-                Install: <span className="font-mono text-text">forge install Slate-Protocol/slate</span>, remapping{" "}
-                <span className="font-mono text-text break-all">@slate-protocol/contracts/=lib/slate/packages/contracts/src/</span>
+                Install: <span className="font-mono text-text">npm install @slate-protocol/contracts</span>, remapping{" "}
+                <span className="font-mono text-text break-all">@slate-protocol/contracts/=node_modules/@slate-protocol/contracts/src/</span>
               </span>
               {cast && (
                 <div className="flex flex-col gap-1.5">

@@ -86,7 +86,7 @@ uint256 usd = SlatePrice.value(amount, 18, price, 8, 6);
 - With no price, stop: pause what needs one. Never fall back to a guess.
 - `value` converts `amount` tokens at `price` into 6-decimal dollars.
 
-Install with `forge install Slate-Protocol/slate` and the remapping `@slate-protocol/contracts/=lib/slate/packages/contracts/src/` (npm publication pending). [Docs: Integrate in five lines](https://docs.slate.0xo.in/integrate).
+Install from npm, [`@slate-protocol/contracts`](https://www.npmjs.com/package/@slate-protocol/contracts): `npm install @slate-protocol/contracts` with the remapping `@slate-protocol/contracts/=node_modules/@slate-protocol/contracts/src/`. Or with Foundry: `forge install Slate-Protocol/slate` and `@slate-protocol/contracts/=lib/slate/packages/contracts/src/`. [Docs: Integrate in five lines](https://docs.slate.0xo.in/integrate).
 
 **Try a feed in a browser first:** [app.slate.0xo.in/price/CRWD](https://app.slate.0xo.in/price/CRWD) returns any Slate feed as JSON (price, multiplier, observedAt, status, feed address), read from the chain on every request. `/price` lists them all. [Docs: Price API](https://docs.slate.0xo.in/api).
 

@@ -24,7 +24,7 @@ forge install Slate-Protocol/slate
 echo '@slate-protocol/contracts/=lib/slate/packages/contracts/src/' >> remappings.txt
 ```
 
-**npm** (publication pending): `npm install @slate-protocol/contracts`, then map `@slate-protocol/contracts/=node_modules/@slate-protocol/contracts/src/`.
+**npm**: `npm install @slate-protocol/contracts`, then add the remapping `@slate-protocol/contracts/=node_modules/@slate-protocol/contracts/src/`.
 
 ## What is in it
 
