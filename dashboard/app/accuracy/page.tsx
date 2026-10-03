@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AccuracyBoard } from "@/components/accuracy";
+import { AccuracyHistory } from "@/components/accuracy-history";
 import { Shell } from "@/components/shell";
 import { coverage } from "@/lib/data";
 
@@ -15,6 +16,7 @@ export default async function Accuracy() {
   return (
     <Shell>
       <AccuracyBoard uncovered={c ? c.tokens - c.withFeed : null} />
+      <AccuracyHistory />
     </Shell>
   );
 }
