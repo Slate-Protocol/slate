@@ -13,6 +13,14 @@ function effectiveAt() external view returns (uint256);     // when the staged v
 
 So the price of one token is **share price × multiplier**. Getting that product right is harder than it looks, in four ways.
 
+## On mainnet today: 45 tokens
+
+This is not a CRWD problem. Read every token's multiplier on Robinhood Chain mainnet (block 79,510,181, Sat 4 Oct 2026) and **45 of the 194 stock tokens have a multiplier other than 1; 32 of those have no Chainlink feed.** One is a split (CRWD, ×4). The other 44 are small adjustments, from ×1.000064 (DELL) to ×1.021486 (CCL), and they keep coming: **36 of the 45 took effect in the last 30 days** (28 of them on tokens without Chainlink), 7 in the last week. That is a floor, since a token reports only its latest change.
+
+A price that ignores the multiplier is low by 1 − 1/multiplier: 75% for CRWD, 2.10% for CCL, 0.71% for SGOV, 0.55% for SCHD. Chainlink's Robinhood feeds are total-return feeds and already include it, so the risk is for the 32 tokens with a multiplier and no feed.
+
+The live census, refreshed every five minutes: [app.slate.0xo.in/census](https://app.slate.0xo.in/census). Rebuild it yourself with `node dashboard/scripts/multiplier-census.mjs`.
+
 ## 1. The switch is silent
 
 `UIMultiplierUpdated` fires when a change is **staged**, not when it happens. At `effectiveAt`, `uiMultiplier()` simply starts returning the new value: no transaction, no event. For CRWD the event fired at 01:01 UTC and the switch happened at 13:30 UTC, twelve and a half hours later. An indexer or keeper that applies the new multiplier on the event is wrong for that whole gap.

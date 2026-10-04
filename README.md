@@ -8,6 +8,8 @@
 
 On 1 Oct 2026 Robinhood's registry listed 194 stock tokens and Chainlink had feeds for 35 of them. Recount any time: `curl -s https://api.robinhood.com/rhj/assets | jq '.assets | length'`, against `curl -s https://reference-data-directory.vercel.app/feeds-robinhood-mainnet.json | jq '[.[] | select(.name | startswith("Robinhood"))] | length'`.
 
+**And it is not one token.** At mainnet block 79,510,181, **45 of the 194 stock tokens have a multiplier other than 1, and 32 of those have no Chainlink feed.** 36 of the 45 changed in the last 30 days. A price that ignores the multiplier is 75% low on CRWD and up to 2.10% low on the rest. [Live census](https://app.slate.0xo.in/census) · `node dashboard/scripts/multiplier-census.mjs`.
+
 ## CRWD, the case in one token
 
 CrowdStrike's stock token on Robinhood Chain mainnet (`0xea72Ecca2d0f6bFA1394DBBCff85b52CD4233931`) went through a 4:1 split on 2 July 2026. Its `uiMultiplier()` is now `4e18`: one token is four shares. It has **no Chainlink feed**, so nothing on-chain can price it, and anything that pairs the share price with the raw balance is off by 4×.
