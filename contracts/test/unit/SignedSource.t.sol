@@ -215,6 +215,22 @@ contract SignedSourceTest is ReportBuilder {
         _submit(_all(), p, uint64(block.timestamp));
     }
 
+    /// The spread is max − min. Prices an exact multiple apart (one signer reporting double) must not slip through
+    /// any arithmetic that happens to read zero for them.
+    function test_rejects_signersAFactorOfTwoApart() public {
+        int192[] memory p = new int192[](3);
+        (p[0], p[1], p[2]) = (100e8, 150e8, 200e8);
+        vm.expectRevert(abi.encodeWithSelector(SignedSource.SpreadTooWide.selector, 6666));
+        _submit(_all(), p, uint64(block.timestamp));
+    }
+
+    function test_constructor_rejectsZeroVerifier() public {
+        address[] memory addrs = new address[](1);
+        addrs[0] = signers[0].addr;
+        vm.expectRevert(SignedSource.ZeroAddress.selector);
+        new SignedSource(SolidityReportVerifier(address(0)), owner, addrs, 1, SPREAD_BPS, JUMP_BPS, 60);
+    }
+
     function test_rejects_nonPositive() public {
         vm.expectRevert(SignedSource.NonPositivePrice.selector);
         _submit(_all(), _same(3, 0), uint64(block.timestamp));
@@ -294,6 +310,41 @@ contract SignedSourceTest is ReportBuilder {
         for (uint256 i; i < n; ++i) {
             assertEq(signers_[i], s[i].addr);
         }
+    }
+
+    /// Signers may observe at different times: the report's time is the median of theirs (the upper one for an even
+    /// count) and the future-skew check uses the latest, whatever order the signers' times arrive in.
+    function testFuzz_verifierObservationTimesMatchReference(uint256 seed, uint8 count) public {
+        uint256 n = bound(count, 1, 7);
+        Signer[] memory s = _signers(n);
+        uint64[] memory t = new uint64[](n);
+        bytes32 otherDomain = keccak256("domain");
+        bytes memory report;
+        for (uint256 i; i < n; ++i) {
+            t[i] = uint64(bound(uint256(keccak256(abi.encode(seed, i))), 1, 1e10));
+            report = bytes.concat(report, _entry(otherDomain, CRWD, s[i], 100e8, t[i]));
+        }
+        (,,,, uint64 medianAt, uint64 maxAt) = verifier.verify(otherDomain, CRWD, report);
+
+        for (uint256 i; i < n; ++i) {
+            for (uint256 j = i + 1; j < n; ++j) {
+                if (t[j] < t[i]) (t[i], t[j]) = (t[j], t[i]);
+            }
+        }
+        assertEq(medianAt, t[n / 2]);
+        assertEq(maxAt, t[n - 1]);
+    }
+
+    function test_rejects_oneSignerTooFarInTheFuture() public {
+        Signer[] memory s = _all();
+        uint64 t = uint64(block.timestamp);
+        bytes memory report = bytes.concat(
+            _entry(domain, CRWD, s[0], 100e8, t + 61),
+            _entry(domain, CRWD, s[1], 100e8, t),
+            _entry(domain, CRWD, s[2], 100e8, t - 5)
+        );
+        vm.expectRevert(abi.encodeWithSelector(SignedSource.FutureObservation.selector, t + 61));
+        src.submit(CRWD, report);
     }
 
     function _sorted(int192[] memory a) private pure returns (int192[] memory b) {

@@ -43,3 +43,6 @@ next-env.d.ts
 # gas rehearsals on a local fork
 deployments/.rehearsal-*
 contracts/broadcast/*/31337/
+
+# mutation testing (contracts/mutation/run.sh)
+contracts/mutation/out/

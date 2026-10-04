@@ -11,6 +11,13 @@ import {MockPriceSource} from "../mocks/MockPriceSource.sol";
 import {MockLegacyStockToken, MockRebasingToken, MockStockToken} from "../mocks/MockStockToken.sol";
 import {Test} from "forge-std/Test.sol";
 
+/// @dev An ERC-8056 token that reports a zero multiplier.
+contract ZeroMultiplierToken {
+    uint256 public uiMultiplier;
+    uint256 public newUIMultiplier;
+    uint256 public effectiveAt;
+}
+
 contract SlateFeedTest is Test {
     uint256 internal constant WED_1500 = 1_790_780_400; // Wed 30 Sep 2026 15:00 UTC
     uint256 internal constant FRI_2359 = 1_790_985_540; // Fri 2 Oct 2026 23:59 UTC
@@ -65,6 +72,25 @@ contract SlateFeedTest is Test {
     function test_constructor_rejectsZeroAddresses() public {
         vm.expectRevert(SlateFeed.ZeroAddress.selector);
         _feed(address(0), MultiplierModel.ERC8056, raw, false);
+    }
+
+    function test_constructor_rejectsZeroMaxAge() public {
+        vm.expectRevert(SlateFeed.ZeroMaxAge.selector);
+        new SlateFeed(
+            SlateFeed.Config({
+                token: address(crwd),
+                model: MultiplierModel.ERC8056,
+                source: raw,
+                feedId: bytes32("CRWD/USD"),
+                maxAge: 0,
+                corporateActionGrace: GRACE,
+                largeChangeBps: LARGE_BPS,
+                allowMarketClosed: false,
+                calendar: calendar,
+                session: Session.EXTENDED,
+                description: "CRWD / USD"
+            })
+        );
     }
 
     function test_constructor_rejectsTotalReturnOnRebasingToken() public {
@@ -128,10 +154,42 @@ contract SlateFeedTest is Test {
         assertEq(_quote(f).answer, 100e8);
     }
 
+    function test_rebasing_reportsTheTokensMultiplierWithoutApplyingIt() public {
+        MockRebasingToken reb = new MockRebasingToken();
+        reb.setMultiplier(1.5e18);
+        SlateFeed f = _feed(address(reb), MultiplierModel.REBASING, raw, false);
+        raw.set(100e8, 8, block.timestamp);
+        (Quote memory q, int256 sharePrice, uint256 multiplier) = f.latestDetail();
+        assertEq(q.answer, 100e8);
+        assertEq(sharePrice, 100e8);
+        assertEq(multiplier, 1.5e18);
+        assertEq(uint8(q.status), uint8(FeedStatus.OK));
+    }
+
+    /// A plain ERC-20 is one share forever: the token's own multiplier functions are never consulted.
+    function test_none_ignoresTheTokenAndUsesOne() public {
+        crwd.updateMultiplier(4e18);
+        MockLegacyStockToken legacy = new MockLegacyStockToken("Plain", "PLN");
+        legacy.updateMultiplier(4e18);
+        for (uint256 i; i < 2; ++i) {
+            SlateFeed f = _feed(i == 0 ? address(crwd) : address(legacy), MultiplierModel.NONE, raw, false);
+            raw.set(100e8, 8, block.timestamp);
+            (Quote memory q, int256 sharePrice, uint256 multiplier) = f.latestDetail();
+            assertEq(q.answer, 100e8);
+            assertEq(sharePrice, 100e8);
+            assertEq(multiplier, 1e18);
+            assertEq(uint8(q.status), uint8(FeedStatus.OK));
+            (, int256 answer,,,) = f.latestRoundData();
+            assertEq(answer, 100e8);
+        }
+    }
+
     function test_normalizesSourceDecimals() public {
         raw.set(264.98e18, 18, block.timestamp);
         assertEq(_quote(feed).answer, 26_498_000_000);
         raw.set(264_980_000, 6, block.timestamp);
+        assertEq(_quote(feed).answer, 26_498_000_000);
+        raw.set(26_498, 2, block.timestamp);
         assertEq(_quote(feed).answer, 26_498_000_000);
     }
 
@@ -236,6 +294,55 @@ contract SlateFeedTest is Test {
         assertEq(_quote(feed).answer, 1000e8); // continuous: 250 * 4 == 1000 * 1
     }
 
+    /// A falling multiplier is measured like a rising one: a 1:4 reverse split is large and holds the feed through
+    /// the grace window; a 1% fall is small and the poked feed stays exact.
+    function test_reverseSplit_poked_holdsThroughGrace_smallFallDoesNot() public {
+        uint256 e = block.timestamp + 1 hours;
+        crwd.updateMultiplier(0.25e18, e);
+        assertTrue(feed.poke());
+        vm.warp(e + 5 minutes);
+        raw.set(400e8, 8, block.timestamp);
+        assertEq(uint8(feed.status()), uint8(FeedStatus.CORPORATE_ACTION));
+
+        SlateFeed small = _feed(address(crwd), MultiplierModel.ERC8056, raw, false);
+        uint256 e2 = block.timestamp + 1 hours;
+        crwd.updateMultiplier(0.2475e18, e2); // 1% lower
+        assertTrue(small.poke());
+        raw.set(400e8, 8, e2 - 1);
+        vm.warp(e2 + 1);
+        Quote memory q = _quote(small);
+        assertEq(uint8(q.status), uint8(FeedStatus.OK));
+        assertEq(q.answer, 100e8); // 400 × 0.25, the multiplier in force when observed
+        raw.set(400e8, 8, block.timestamp);
+        q = _quote(small);
+        assertEq(uint8(q.status), uint8(FeedStatus.OK));
+        assertEq(q.answer, 99e8); // 400 × 0.2475
+    }
+
+    /// A total-return price already includes the multiplier, so a switch never interrupts it.
+    function test_totalReturn_isUninterruptedBySwitch() public {
+        SlateFeed f = _feed(address(crwd), MultiplierModel.ERC8056, tr, false);
+        uint256 e = block.timestamp + 1 hours;
+        crwd.updateMultiplier(4e18, e); // not poked
+        tr.set(1000e8, 8, e - 1);
+        vm.warp(e + 1);
+        Quote memory q = _quote(f);
+        assertEq(uint8(q.status), uint8(FeedStatus.OK));
+        assertEq(q.answer, 1000e8);
+        tr.set(1000e8, 8, block.timestamp);
+        assertEq(uint8(f.status()), uint8(FeedStatus.OK));
+    }
+
+    /// A token reporting a zero multiplier (Robinhood's never does; a broken or foreign one might) gets no price,
+    /// never a price of zero.
+    function test_zeroMultiplier_isNoData() public {
+        SlateFeed f = _feed(address(new ZeroMultiplierToken()), MultiplierModel.ERC8056, raw, false);
+        raw.set(100e8, 8, block.timestamp);
+        assertEq(uint8(f.status()), uint8(FeedStatus.NO_DATA));
+        vm.expectRevert(abi.encodeWithSelector(ISlateFeed.FeedUnavailable.selector, FeedStatus.NO_DATA));
+        f.latestRoundData();
+    }
+
     /// `updateMultiplier(uint256)` switches in the same block it is staged, so it can never be poked.
     function test_immediateSwitch_cannotBeSnapshotted_failsClosed() public {
         raw.set(1000e8, 8, block.timestamp);
@@ -294,6 +401,8 @@ contract SlateFeedTest is Test {
     function test_staleOnAWeekday() public {
         raw.set(100e8, 8, block.timestamp);
         vm.warp(block.timestamp + MAX_AGE + 1);
+        assertEq(uint8(feed.status()), uint8(FeedStatus.STALE));
+        raw.set(100e8, 8, 1); // a source that never set a real time
         assertEq(uint8(feed.status()), uint8(FeedStatus.STALE));
     }
 

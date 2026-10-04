@@ -139,7 +139,9 @@ Strike builds on Chainlink feeds that already exist, and three.ws has no on-chai
 
 ## Tests, and the gap they found
 
-170 tests, 0 failing: 146 unit and fuzz tests, 16 fork tests against live Robinhood Chain mainnet, testnet and Arbitrum One, and 8 stateful invariants. The SignedSource invariants check, against independently computed rules, that it accepts exactly the reports those rules allow; the SlateFeed invariants check that every price it serves is the share price × the multiplier truly in force when that price was observed. That suite found one real gap in the deployed feed: a later multiplier schedule can hide an earlier switch, and an older price then gets the newer multiplier (up to 2.1% on the adjustments seen so far, 4× on a split). No mainnet feed is exposed today; the fix needs a redeploy. What it is, what it could cost and the fix: [Security and limitations](https://docs.slate.0xo.in/security).
+180 tests, 0 failing: 156 unit and fuzz tests, 16 fork tests against live Robinhood Chain mainnet, testnet and Arbitrum One, and 8 stateful invariants. The SignedSource invariants check, against independently computed rules, that it accepts exactly the reports those rules allow; the SlateFeed invariants check that every price it serves is the share price × the multiplier truly in force when that price was observed. That suite found one real gap in the deployed feed: a later multiplier schedule can hide an earlier switch, and an older price then gets the newer multiplier (up to 2.1% on the adjustments seen so far, 4× on a split). No mainnet feed is exposed today; the fix needs a redeploy. What it is, what it could cost and the fix: [Security and limitations](https://docs.slate.0xo.in/security).
+
+Mutation testing checks the tests themselves: of 505 Gambit mutants of `SlateFeed`, `SignedSource`, its signature verifier and the multiplier reader, the suite kills 492 (97.4%), and the 13 survivors are equivalent, each explained in [contracts/mutation](contracts/mutation). The first run killed 89.1%; the gaps it exposed now have tests.
 
 ## Repository
 
