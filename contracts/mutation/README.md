@@ -9,6 +9,8 @@ that bug.
 ```sh
 cargo install --git https://github.com/Certora/gambit.git --locked
 WORKERS=11 contracts/mutation/run.sh   # about 45 minutes on 12 cores
+contracts/mutation/run.sh --one SignedSource 48   # one mutant: its change, then the tests that catch it
+contracts/mutation/run.sh --summary               # the last run's results, per contract
 ```
 
 ## Results (4 Oct 2026, Gambit 0.2.1)
