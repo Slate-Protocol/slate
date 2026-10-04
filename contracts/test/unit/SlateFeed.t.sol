@@ -315,4 +315,29 @@ contract SlateFeedTest is Test {
         vm.warp(SAT_1200);
         assertEq(uint8(feed.status()), uint8(FeedStatus.STALE));
     }
+
+    // ---------------------------------------------------------------- known gap (disclosed)
+
+    /// Known gap, disclosed in docs/content/security.md. A token reports only its latest multiplier switch. If a
+    /// price was observed before switch A, A takes effect, and the token then stages switch B before a newer price
+    /// arrives, the feed can no longer see A: it applies A's multiplier to the older price. Here, over a weekend,
+    /// Friday's close is served 2% high. The fix needs a new deployment (the feed must keep the switches it has seen);
+    /// this test pins today's behaviour so the gap stays documented and a fix will show as a deliberate change.
+    function test_knownGap_aLaterScheduleHidesAnEarlierSwitch() public {
+        SlateFeed f = _feed(address(crwd), MultiplierModel.ERC8056, raw, true);
+        vm.warp(1_790_985_300); // Fri 2 Oct 2026 23:55 UTC (19:55 New York), the session still open
+        crwd.updateMultiplier(1.02e18, 1_790_986_200); // switch A staged for Sat 00:10 UTC, after the close
+        f.poke(); // the publisher records A while the old multiplier is still readable
+        raw.set(100e8, 8, block.timestamp); // Friday's last price, before A
+
+        vm.warp(1_790_989_200); // Sat 01:00 UTC: A is in force; Friday's price is served at the old multiplier
+        (, int256 answer,,,) = f.latestRoundData();
+        assertEq(answer, 100e8, "correct while the token still reports A");
+
+        vm.warp(1_791_028_800); // Sat 12:00 UTC: switch B is staged for Monday, overwriting effectiveAt
+        crwd.updateMultiplier(1.0302e18, 1_791_159_000);
+        (, answer,,,) = f.latestRoundData();
+        assertEq(answer, 102e8, "the gap: A is hidden, so Friday's price gets A's multiplier (should be 100e8)");
+        assertEq(uint8(f.status()), uint8(FeedStatus.MARKET_CLOSED));
+    }
 }

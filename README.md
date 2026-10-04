@@ -137,6 +137,10 @@ On testnet, **TESTUSD** (Slate Test Dollar) is the testnet stand-in for Paxos US
 
 Strike builds on Chainlink feeds that already exist, and three.ws has no on-chain price at all. **Neither prices a stock token that has no Chainlink feed, and neither publishes a basket NAV as a feed.** Those are the two things Slate adds.
 
+## Tests, and the gap they found
+
+170 tests, 0 failing: 146 unit and fuzz tests, 16 fork tests against live Robinhood Chain mainnet, testnet and Arbitrum One, and 8 stateful invariants. The SignedSource invariants check, against independently computed rules, that it accepts exactly the reports those rules allow; the SlateFeed invariants check that every price it serves is the share price × the multiplier truly in force when that price was observed. That suite found one real gap in the deployed feed: a later multiplier schedule can hide an earlier switch, and an older price then gets the newer multiplier (up to 2.1% on the adjustments seen so far, 4× on a split). No mainnet feed is exposed today; the fix needs a redeploy. What it is, what it could cost and the fix: [Security and limitations](https://docs.slate.0xo.in/security).
+
 ## Repository
 
 | Path | What |

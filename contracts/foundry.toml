@@ -12,7 +12,7 @@ optimizer = true
 optimizer_runs = 10_000
 bytecode_hash = "none"
 cbor_metadata = false
-fs_permissions = [{ access = "read-write", path = "../deployments" }]
+fs_permissions = [{ access = "read-write", path = "../deployments" }, { access = "write", path = "./cache/invariant-coverage.csv" }, { access = "write", path = "./cache/invariant-coverage-signed.csv" }]
 
 [profile.default.fuzz]
 runs = 1024
